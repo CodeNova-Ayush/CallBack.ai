@@ -111,8 +111,8 @@ Create a `.env` file in the root directory:
 DATABASE_URL="file:./dev.db"
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/login
 NEXT_PUBLIC_CLERK_SIGN_UP_URL=/register
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_ZmFpci1wZWFjb2NrLTIxLmNsZXJrLmFjY291bnRzLmRldiQ
-CLERK_SECRET_KEY=sk_test_l49C9JjgW4CY2KV3OP7Q5IOEpNmMmYJvVXkkyfqTLq
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key_here
+CLERK_SECRET_KEY=your_clerk_secret_key_here
 ```
 
 ### 3. Initialize & Seed Database
