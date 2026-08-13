@@ -1,0 +1,81 @@
+                                                                                                                                                                                <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3-Zone Resume Builder — Callback AI</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body style="overflow: hidden;">
+
+  <!-- Header Toolbar -->
+  <header class="header-nav" style="height: 64px; padding: 0 1.5rem; background: #ffffff;">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <span style="font-weight: 800; font-size: 0.85rem; color: #231F1D;">Ayush Mishra — Resume Builder</span>
+      <span class="badge badge-terracotta">ATS Ready (94/100)</span>
+
+      <select id="template-select" class="form-select" style="width: auto; padding: 0.35rem 0.85rem; font-size: 0.75rem; font-weight: 800;" onchange="AppState.selectedTemplate = this.value; renderAll();">
+        <option value="modern_executive">Modern Executive</option>
+        <option value="classic_ats">Classic ATS Standard</option>
+      </select>
+
+      <button class="btn-pill btn-tertiary" style="padding: 0.35rem 0.85rem; font-size: 0.75rem;" onclick="clearCandidateData()">Start Fresh (Blank Canvas)</button>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <button class="btn-pill btn-primary" onclick="window.print()">Export ATS PDF</button>
+    </div>
+  </header>
+
+  <!-- 3-Zone Viewport -->
+  <div class="builder-layout">
+    <!-- Zone 1: Left Section List -->
+    <div class="zone-nav">
+      <span style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: #786F68; padding: 0.5rem;">Resume Sections</span>
+      <button class="sidebar-link active" style="width: 100%; margin-top: 0.5rem;">Personal Information</button>
+      <button class="sidebar-link" style="width: 100%; margin-top: 0.25rem;">Work Experience</button>
+      <button class="sidebar-link" style="width: 100%; margin-top: 0.25rem;">Projects & Work</button>
+      <button class="sidebar-link" style="width: 100%; margin-top: 0.25rem;">Education</button>
+      <button class="sidebar-link" style="width: 100%; margin-top: 0.25rem;">Skills & Tech Stack</button>
+    </div>
+
+    <!-- Zone 2: Form Controls -->
+    <div class="zone-form">
+      <h2 style="font-size: 1.1rem; font-weight: 800; color: #231F1D; margin-bottom: 1rem; border-bottom: 1px solid #EAE3D5; padding-bottom: 0.5rem;">Personal Details</h2>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="input-name" class="form-input" value="Ayush Mishra" oninput="AppState.candidateData.personalInfo.fullName = this.value; renderAll();">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="input-email" class="form-input" value="ayush.mishra@demo.com" oninput="AppState.candidateData.personalInfo.email = this.value; renderAll();">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <input type="text" id="input-phone" class="form-input" value="+1 (555) 234-5678" oninput="AppState.candidateData.personalInfo.phone = this.value; renderAll();">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Location</label>
+          <input type="text" id="input-location" class="form-input" value="San Francisco, CA" oninput="AppState.candidateData.personalInfo.location = this.value; renderAll();">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Professional Summary</label>
+        <textarea id="input-summary" class="form-textarea" rows="4" oninput="AppState.candidateData.personalInfo.summary = this.value; renderAll();">Passionate Full-Stack AI Engineer with 4+ years of experience architecting high-throughput distributed systems, vector search pipelines, and intuitive React web applications.</textarea>
+      </div>
+    </div>
+
+    <!-- Zone 3: Live Printable Preview -->
+    <div class="zone-preview">
+      <div id="resume-preview-target" class="card" style="width: 750px; min-height: 1000px; padding: 2.5rem; background: #ffffff; border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
