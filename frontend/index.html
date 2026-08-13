@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Callback AI — Next-Gen AI Resume Builder & Candidate Agent</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="header-nav">
+    <div class="logo-brand" onclick="window.location.href='index.html'">
+      <div class="logo-icon-sq">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M17 8.5C15.7 7.2 13.9 6.5 12 6.5C8.4 6.5 5.5 9.4 5.5 13C5.5 16.6 8.4 19.5 12 19.5C14.8 19.5 17.2 17.7 18.1 15"/><path d="M14 8.5H17.5V12"/><circle cx="18" cy="6" r="1.5" fill="currentColor"/></svg>
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <span class="logo-title">Callback</span>
+          <span class="logo-badge">AI</span>
+        </div>
+        <span class="logo-tagline">AI Resume & Candidate Agent</span>
+      </div>
+    </div>
+
+    <nav class="nav-pills">
+      <a href="#templates" class="nav-pill-item">Resume Templates</a>
+      <a href="#features" class="nav-pill-item">Features</a>
+      <a href="agent.html" class="nav-pill-item">Living Agent</a>
+      <a href="trust.html" class="nav-pill-item">Trust Score</a>
+    </nav>
+
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <a href="dashboard.html" class="btn-pill btn-secondary">Dashboard</a>
+      <a href="builder.html" class="btn-pill btn-primary">Launch Builder →</a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main style="max-width: 1400px; margin: 0 auto; padding: 4rem 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;">
+    <div style="display: flex; flex-direction: column; gap: 1.5rem; text-align: left;">
+      <div class="badge badge-terracotta" style="width: fit-content;">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: #C85A32; display: inline-block;"></span>
+        Next-Gen AI Resume & Candidate Agent System
+      </div>
+
+      <h1 style="font-size: 3.5rem; font-weight: 900; line-height: 1.1; letter-spacing: -0.03em;">
+        Your Resume is No Longer a Static PDF. <br>
+        <span style="color: #C85A32; text-decoration: underline; text-decoration-color: #F6DCD1;">It's an Autonomous Candidate Agent.</span>
+      </h1>
+
+      <p style="font-size: 1.1rem; color: #786F68; font-weight: 400; line-height: 1.6;">
+        Build ATS-optimized resumes from multiple professional template designs, verify experience claims with instant Trust Scores, and empower recruiters to converse directly with your grounded candidate agent.
+      </p>
+
+      <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <a href="dashboard.html" class="btn-pill btn-primary" style="padding: 0.85rem 2rem; font-size: 0.95rem;">Explore Candidate Dashboard →</a>
+        <a href="builder.html" class="btn-pill btn-secondary" style="padding: 0.85rem 2rem; font-size: 0.95rem;">Open 3-Zone Builder</a>
+      </div>
+    </div>
+
+    <!-- Live Preview Card -->
+    <div class="card" style="background: #ffffff; padding: 1.5rem; border-radius: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EAE3D5; padding-bottom: 1rem; margin-bottom: 1rem;">
+        <span style="font-weight: 800; font-size: 0.85rem; color: #231F1D;">Callback Workspace — Ayush Mishra</span>
+        <div style="display: flex; gap: 0.5rem;">
+          <span class="badge badge-success">ATS Score: 94/100</span>
+          <span class="badge badge-terracotta">Trust Score: 96% Verified</span>
+        </div>
+      </div>
+
+      <div style="background: #FDF4F0; padding: 1rem; border-radius: 1rem; border: 1px solid #F6DCD1; font-size: 0.825rem; display: flex; flex-direction: column; gap: 0.5rem;">
+        <span style="font-weight: 800; color: #C85A32;">🤖 Living Candidate Agent</span>
+        <p>"Ayush architected a PgVector RAG query pipeline at Aether Cloud handling 150k daily active requests, cutting p95 latency by 45% down to 180ms."</p>
+        <span style="font-size: 0.7rem; font-weight: 700; color: #2E7D32;">✔ Source Citation: Experience #1 — Aether Cloud Tech</span>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
