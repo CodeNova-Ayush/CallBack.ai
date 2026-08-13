@@ -203,7 +203,118 @@ export default function BuilderPage(props: { params: Promise<{ resumeId: string 
     }
   };
 
+  const handleDownloadLocalFile = (format: 'html' | 'txt' | 'json' = 'html') => {
+    try {
+      const candidateNameClean = personalInfo.fullName ? personalInfo.fullName.replace(/\s+/g, '_') : 'Resume';
+      let fileContent = '';
+      let mimeType = 'text/html;charset=utf-8';
+      let extension = 'html';
+
+      if (format === 'json') {
+        fileContent = JSON.stringify(resumeData, null, 2);
+        mimeType = 'application/json;charset=utf-8';
+        extension = 'json';
+      } else if (format === 'txt') {
+        fileContent = `${personalInfo.fullName || 'Candidate Name'}
+${[personalInfo.email, personalInfo.phone, personalInfo.location, personalInfo.linkedin, personalInfo.github].filter(Boolean).join(' | ')}
+
+SUMMARY:
+${personalInfo.summary || ''}
+
+WORK EXPERIENCE:
+${experiences.map(e => `${e.role} at ${e.company} (${e.startDate} - ${e.endDate})\n${e.location}\n` + e.bullets.map(b => `  • ${b}`).join('\n')).join('\n\n')}
+
+EDUCATION:
+${education.map(ed => `${ed.degree} - ${ed.institution} (${ed.startDate} - ${ed.endDate}) ${ed.gpa ? `[GPA: ${ed.gpa}]` : ''}`).join('\n')}
+
+PROJECTS:
+${projects.map(p => `${p.title} (${p.techStack})\n` + p.bullets.map(b => `  • ${b}`).join('\n')).join('\n\n')}
+
+SKILLS:
+${skills.join(', ')}
+`;
+        mimeType = 'text/plain;charset=utf-8';
+        extension = 'txt';
+      } else {
+        fileContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${personalInfo.fullName || 'Resume'} — Callback AI Export</title>
+  <style>
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 40px; color: #111827; line-height: 1.6; }
+    h1 { font-size: 26px; margin-bottom: 4px; color: #111827; text-transform: uppercase; }
+    .contact { font-size: 13px; color: #4B5563; margin-bottom: 20px; border-bottom: 2px solid #111827; padding-bottom: 8px; }
+    .section-title { font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #111827; border-bottom: 1px solid #D1D5DB; margin-top: 20px; margin-bottom: 10px; padding-bottom: 4px; }
+    .item-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; }
+    .item-sub { font-style: italic; font-size: 13px; color: #4B5563; margin-bottom: 6px; }
+    ul { margin-top: 4px; padding-left: 20px; font-size: 13px; }
+    li { margin-bottom: 4px; }
+    .skills-list { font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>${personalInfo.fullName || 'Candidate Name'}</h1>
+  <div class="contact">
+    ${[personalInfo.email, personalInfo.phone, personalInfo.location, personalInfo.linkedin, personalInfo.github].filter(Boolean).join(' | ')}
+  </div>
+  ${personalInfo.summary ? `
+    <div class="section-title">Professional Summary</div>
+    <p style="font-size: 13px;">${personalInfo.summary}</p>
+  ` : ''}
+  ${experiences.length > 0 ? `
+    <div class="section-title">Work Experience</div>
+    ${experiences.map(e => `
+      <div style="margin-bottom: 14px;">
+        <div class="item-header"><span>${e.role} — ${e.company}</span><span>${e.startDate} – ${e.endDate}</span></div>
+        <div class="item-sub">${e.location}</div>
+        <ul>${e.bullets.map(b => `<li>${b}</li>`).join('')}</ul>
+      </div>
+    `).join('')}
+  ` : ''}
+  ${education.length > 0 ? `
+    <div class="section-title">Education</div>
+    ${education.map(ed => `
+      <div style="margin-bottom: 10px;">
+        <div class="item-header"><span>${ed.degree} — ${ed.institution}</span><span>${ed.startDate} – ${ed.endDate}</span></div>
+        <div class="item-sub">${ed.location} ${ed.gpa ? `| GPA: ${ed.gpa}` : ''}</div>
+      </div>
+    `).join('')}
+  ` : ''}
+  ${projects.length > 0 ? `
+    <div class="section-title">Projects</div>
+    ${projects.map(p => `
+      <div style="margin-bottom: 10px;">
+        <div class="item-header"><span>${p.title}</span><span>${p.techStack}</span></div>
+        <ul>${p.bullets.map(b => `<li>${b}</li>`).join('')}</ul>
+      </div>
+    `).join('')}
+  ` : ''}
+  ${skills.length > 0 ? `
+    <div class="section-title">Skills & Technologies</div>
+    <div class="skills-list">${skills.join(' • ')}</div>
+  ` : ''}
+</body>
+</html>`;
+      }
+
+      const fileName = `${candidateNameClean}_Resume.${extension}`;
+      const blob = new Blob([fileContent], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download local file error:', err);
+    }
+  };
+
   const handleExportPDF = () => {
+    handleDownloadLocalFile('html');
     window.print();
   };
 
@@ -284,6 +395,10 @@ export default function BuilderPage(props: { params: Promise<{ resumeId: string 
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
           </div>
+
+          <Button variant="secondary" size="sm" onClick={() => handleDownloadLocalFile('txt')} leftIcon={<FileText className="w-3.5 h-3.5 text-[#C85A32]" />}>
+            Download .TXT
+          </Button>
 
           <Button variant="primary" size="sm" onClick={handleExportPDF} leftIcon={<Download className="w-4 h-4" />}>
             Export ATS PDF
