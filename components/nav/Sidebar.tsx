@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import { useAuth, useUser } from '@clerk/nextjs';
 import {
   LayoutDashboard,
   FileText,
@@ -35,9 +36,56 @@ interface NavGroup {
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
+  const { signOut } = useAuth();
+  const { isLoaded, user } = useUser();
 
   const resumeIdMatch = pathname.match(/\/(builder|analyzer|jd-match|agent|trust-score)\/([^\/]+)/);
   const activeResumeId = resumeIdMatch ? resumeIdMatch[2] : 'demo-resume-alex-1';
+
+  const [candidateName, setCandidateName] = React.useState('Alex Morgan');
+  const [candidateEmail, setCandidateEmail] = React.useState('alex.morgan@demo.com');
+
+  React.useEffect(() => {
+    if (!isLoaded || !user) return;
+
+    const primaryEmail = user.primaryEmailAddress?.emailAddress || user.emailAddresses[0]?.emailAddress;
+    setCandidateName(user.fullName || user.firstName || primaryEmail?.split('@')[0] || 'Signed-in user');
+    if (primaryEmail) setCandidateEmail(primaryEmail);
+  }, [isLoaded, user]);
+
+  React.useEffect(() => {
+    if (activeResumeId) {
+      fetch(`/api/resumes/${activeResumeId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.resume) {
+            let name = '';
+            if (data.resume.sections) {
+              const pInfo = data.resume.sections.find((s: any) => s.sectionType === 'personal_info');
+              if (pInfo) {
+                try {
+                  const parsed = typeof pInfo.content === 'string' ? JSON.parse(pInfo.content) : pInfo.content;
+                  if (parsed.fullName || parsed.name) name = parsed.fullName || parsed.name;
+                  if (parsed.email) setCandidateEmail(parsed.email);
+                } catch {}
+              }
+            }
+            if (!name && data.resume.title) {
+              name = data.resume.title.split('—')[0].trim();
+            }
+            if (name) setCandidateName(name);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [activeResumeId]);
+
+  const initials = candidateName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || 'AM';
 
   const navGroups: NavGroup[] = [
     {
@@ -124,20 +172,26 @@ export const Sidebar: React.FC = () => {
       <div className="p-3 border-t border-[#EAE3D5] bg-white/60 flex items-center justify-between">
         <div className="flex items-center gap-2.5 overflow-hidden">
           <div className="w-8 h-8 rounded-full bg-[#C85A32] text-white flex items-center justify-center text-xs font-bold shrink-0">
-            AM
+            {initials}
           </div>
           <div className="flex flex-col truncate">
-            <span className="text-xs font-bold text-[#231F1D] truncate">Ayush Mishra</span>
-            <span className="text-[10px] text-[#786F68] truncate">ayush.mishra@demo.com</span>
+            <span className="text-xs font-bold text-[#231F1D] truncate">{candidateName}</span>
+            <span className="text-[10px] text-[#786F68] truncate">{candidateEmail}</span>
           </div>
         </div>
-        <Link
-          href="/login"
-          className="p-1.5 text-[#786F68] hover:text-[#231F1D] hover:bg-[#FAF6F0] rounded-full transition-colors"
+        <button
+          type="button"
+          onClick={async () => {
+            localStorage.removeItem('is_authenticated');
+            localStorage.removeItem('user_name');
+            localStorage.removeItem('user_email');
+            await signOut({ redirectUrl: '/login' });
+          }}
+          className="p-1.5 text-[#786F68] hover:text-[#231F1D] hover:bg-[#FAF6F0] rounded-full transition-colors cursor-pointer"
           title="Switch Account / Logout"
         >
           <LogOut className="w-4 h-4" />
-        </Link>
+        </button>
       </div>
     </aside>
   );

@@ -11,7 +11,7 @@
 [![Production Ready](https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge)](https://github.com/CodeNova-Ayush/CallBack.ai)
 
 <p align="center">
-  <b>CallBack.ai</b> transforms static PDFs into dynamic, living career assets. It features a 3-zone ATS resume builder, an automated 100-point ATS score auditor, grounded RAG candidate agents with anti-hallucination guardrails, cryptographic claim verification, persistent skill graph matrix, and voice career intake.
+  <b>CallBack.ai</b> transforms static resumes into dynamic, living career assets. It ships a 3-zone resume builder with 15+ ATS-safe templates, real Clerk authentication, uploaded-resume intelligence, a grounded Living Resume Agent, ATS scoring, JD matching, trust verification, persistent skill graph evidence, and recruiter-facing candidate review surfaces.
 </p>
 
 [✨ View Demo](#-application-walkthrough--visual-showcase) •
@@ -46,87 +46,98 @@
 
 ---
 
-## 🌟 Key Innovations & Feature Matrix
+## 🌟 Flagship Features
 
 | Feature Module | Technology Stack | Core Capabilities |
 | :--- | :--- | :--- |
-| **Living Candidate RAG Agent** | LangChain / RAG / Vector Chunking | Conversational AI persona trained on candidate history with source citations and anti-hallucination guardrails. |
-| **3-Zone Resume Builder** | React 19 / CSS Print Engine | Live side-by-side editing, instant multi-template switching (8 ATS templates), and PDF vector rendering. |
-| **ATS Score Auditor** | Heuristic Parser / Semantic LLM | 100-point breakdown by Impact Quantification, ATS Structure, Keyword Relevance, and Tone. |
-| **Trust & Claim Verification** | GitHub API / Specificity Auditor | Audits resume claims for specificity and verifies public evidence (GitHub repos, credentials). |
-| **Persistent Skill Graph** | Entity Relationship Graph | Interlinked matrix connecting candidate skills to verified real-world project evidence. |
-| **Voice Career Intake** | Web Speech API / Parser | Hands-free career history intake that auto-populates structured resume sections. |
-| **Job Description Matcher** | Semantic Gap Scorer | Compares resumes against job postings, highlighting missing keywords and tailored diffs. |
+| **15+ ATS Template Builder** | Next.js / React / CSS Print | Live 3-zone builder with professional templates, per-resume template switching, zoom preview, and browser PDF export. |
+| **Resume Import Intelligence** | Next.js API Routes / Parsers | Upload or paste old resumes, normalize sections, extract skills, seed analysis results, and unlock every workspace route for the imported resume ID. |
+| **Living Resume Agent** | Grounded RAG Service | Answers recruiter questions using only the uploaded resume context and returns source citations from candidate sections. |
+| **ATS Analyzer** | Heuristic ATS Scorer | Scores structure, readability, missing sections, formatting risks, and grammar/impact opportunities. |
+| **JD Matcher** | Keyword Gap Engine | Compares resume content against job descriptions, highlights missing skills, and recommends targeted edits. |
+| **Trust Verification** | Claim Specificity Engine | Converts resume bullets into verification claims with status, evidence source, confidence note, and specificity score. |
+| **Persistent Skill Graph** | Prisma / Evidence Graph | Stores extracted skills with proficiency signals and evidence snippets for the signed-in candidate. |
+| **Recruiter Companion** | Candidate Review Workspace | Gives recruiters candidate summaries, trust score context, and agent-driven inspection workflows. |
+| **Voice Career Intake** | Browser Voice UI | Lets users capture career achievements conversationally and convert them into structured resume content. |
+| **Clerk Live Authentication** | Clerk / Next.js 16 Proxy | Uses `proxy.ts`, `ClerkProvider`, protected app layout, live sidebar user state, and real Clerk sign-out. |
+
+## ✅ Current Deploy-Ready Result
+
+- Next.js 16-compatible Clerk request wiring is active in `proxy.ts`.
+- The authenticated app shell is protected in `app/(app)/layout.tsx` with `await auth.protect()`.
+- The sidebar reads live Clerk user/session state and signs out through Clerk.
+- The landing page now surfaces the 15+ template library instead of the older 4-theme message.
+- Production build passes with a deploy-safe system font stack.
 
 ---
 
 ## 🖼️ Application Walkthrough & Visual Showcase
 
 ### 1. YC-Stage Landing Page
-High-conversion landing page with live interactive audit demo launcher, social proof badges, and real-time score calculators.
+High-conversion landing page with the autonomous candidate agent pitch, live workspace mockup, and 15+ template-library callout.
 
 ![YC Landing Page](public/screenshots/01-landing-page.png)
 
 ---
 
 ### 2. Candidate Executive Dashboard
-Comprehensive hub showing active resumes, ATS scores, agent status toggles, quick action launchers, and application metrics.
+Authenticated candidate hub showing active resumes, ATS scores, trust signals, import entry points, and quick action launchers.
 
 ![Candidate Dashboard](public/screenshots/02-candidate-dashboard.png)
 
 ---
 
 ### 3. 3-Zone Interactive ATS Resume Builder
-Three-pane workspace featuring section reordering, real-time live preview zoom engine, and 8 ATS-optimized printable vector templates.
+Three-pane workspace with editable sections, live preview, template switching, resume-data normalization, zoom controls, and PDF print export.
 
 ![3-Zone Builder](public/screenshots/03-resume-builder.png)
 
 ---
 
 ### 4. 100-Point ATS Resume Scorer & Analyzer
-Comprehensive audit surface dissecting impact metrics, structural formatting, readability index, and 1-click AI bullet enhancer.
+ATS audit surface for structure, readability, missing sections, formatting warnings, and actionable grammar/impact suggestions.
 
 ![ATS Analyzer](public/screenshots/04-ats-analyzer.png)
 
 ---
 
 ### 5. Grounded RAG Candidate Agent Chat
-Interactive candidate agent allowing recruiters to conduct 24/7 AI interviews grounded strictly in candidate resume vector chunks.
+Living Resume Agent that answers only from the selected/uploaded resume and attaches source citations to reduce hallucination risk.
 
 ![RAG Candidate Agent](public/screenshots/05-rag-candidate-agent.png)
 
 ---
 
 ### 6. Recruiter Candidate Inspection Workspace
-Recruiter interface for comparing candidates, inspecting trust scores, chatting with AI candidate agents, and evaluating skill fit.
+Recruiter-facing workspace for reviewing candidate fit, inspecting trust score context, and launching candidate-agent conversations.
 
 ![Recruiter Dashboard](public/screenshots/06-recruiter-dashboard.png)
 
 ---
 
 ### 7. Trust Score & Claim Verification Engine
-Evidence audit engine that calculates specificity scores, flags unverifiable bullet points, and links public GitHub evidence.
+Claim verification engine that turns resume bullets into evidence-backed claims with specificity scoring and confidence notes.
 
 ![Trust Verification](public/screenshots/07-claim-verification.png)
 
 ---
 
 ### 8. Persistent Skill & Evidence Graph
-Visual matrix connecting technical competencies directly to verified project achievements and repository evidence.
+Candidate skill graph populated from imported resume skills and connected to evidence snippets for each proficiency signal.
 
 ![Skill Graph Matrix](public/screenshots/08-skill-graph.png)
 
 ---
 
 ### 9. Voice-Native Career Intake Engine
-Voice intake surface allowing candidates to dictate work achievements naturally while AI extracts structured resume sections.
+Voice intake surface for turning spoken achievements into structured resume bullets and skill graph inputs.
 
 ![Voice Career Intake](public/screenshots/09-voice-intake.png)
 
 ---
 
 ### 10. Auto-Tailor Opportunities & Diff Inspector
-Job matching hub showing percentage fit, missing keywords, and automated side-by-side resume tailoring diffs.
+Opportunity matching hub for scoring job fit, identifying missing keywords, and preparing targeted application drafts.
 
 ![Opportunities Matcher](public/screenshots/10-opportunities-tailor.png)
 
