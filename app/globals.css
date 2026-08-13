@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: #FAF6F0;
+    --card: #FFFFFF;
+    --card-border: #EAE3D5;
+    --foreground: #231F1D;
+    --muted-foreground: #786F68;
+    --primary: #C85A32;
+    --primary-hover: #B24D28;
+    --primary-light: #FDF4F0;
+    --success: #2E7D32;
+    --success-bg: #F1F8E9;
+    --warning: #D84315;
+    --warning-bg: #FBE9E7;
+    --danger: #C62828;
+    --danger-bg: #FFEBEE;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D8CFC4;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #BDB2A4;
+}
+
+/* ATS Print Stylesheet */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  aside, header, nav, footer, button, .no-print, .print\:hidden {
+    display: none !important;
+  }
+  main, section, div {
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .page-break {
+    page-break-before: always;
+  }
+}
