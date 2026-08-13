@@ -1,30 +1,23 @@
-# Callback AI — Autonomous Living Candidate Agent & Next-Gen Resume Platform
+# Callback AI — Next-Gen AI Resume Builder, ATS Analyzer & Living Candidate Agent Platform
 
-<div align="center">
-
-![Callback AI Banner](public/screenshots/01-landing-page.png)
-
-**Your resume is no longer a static PDF. It is an autonomous candidate agent.**
+> **Transforming static candidate resumes into RAG-grounded, claim-verified, living AI candidate agents.**
 
 [![Next.js 16](https://img.shields.io/badge/Next.js-16.2.11-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript 5](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4.0-38bdf8?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![Prisma ORM 5.22](https://img.shields.io/badge/Prisma_ORM-5.22-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
 [![Clerk Auth](https://img.shields.io/badge/Clerk-Auth-6C47FF?style=for-the-badge&logo=clerk)](https://clerk.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-[Live Demo](http://localhost:3000) • [Architecture](#-system-architecture) • [Features](#-deep-feature-breakdown) • [API Spec](#-backend-api-specification) • [Quick Start](#-getting-started--local-setup)
-
-</div>
+[Live App](http://localhost:3000) • [Architecture](#-system-architecture) • [Features & Interface Screenshots](#-deep-feature-breakdown--interface-gallery) • [Backend API Spec](#-backend-api-specification) • [Local Setup](#-getting-started--local-setup)
 
 ---
 
-## 💡 YC-Stage Product Vision
+## 🌟 YC-Stage Product Vision
 
 ### The Problem
 Traditional hiring is broken by **static 1-page PDF resumes**:
 1. **The 6-Second Glance Barrier**: Recruiters spend an average of 6 seconds scanning static PDFs, missing deep technical achievements, latency improvements, and architectural complexity.
-2. **ATS Black Hole**: 75%+ of resumes are discarded by legacy Applicant Tracking System (ATS) parsers due to parsing errors, unoptimized keywords, or non-standard formatting.
+2. **ATS Black Hole**: Over 75% of resumes are discarded by legacy Applicant Tracking System (ATS) parsers due to formatting errors, unoptimized keywords, or non-standard structures.
 3. **Unverified Claims**: Recruiters spend weeks doing manual reference checks because experience metrics on resumes are unverified and vulnerable to exaggeration or hallucination.
 
 ### The Solution: Callback AI
@@ -37,8 +30,15 @@ Traditional hiring is broken by **static 1-page PDF resumes**:
 
 ## 📷 Deep Feature Breakdown & Interface Gallery
 
-### 1. Candidate Management Dashboard
-![1. Candidate Dashboard](public/screenshots/02-candidate-dashboard.png)
+### 1. Production Landing Page & Template Showcase
+![1. Landing Page Showcase](public/screenshots/01-landing-page.png)
+
+The YC-stage landing page features a live interactive preview widget, full 15+ template gallery showcase, capability matrix, and quick trial launchpad for candidates and recruiters.
+
+---
+
+### 2. Candidate Management Dashboard
+![2. Candidate Dashboard](public/screenshots/02-candidate-dashboard.png)
 
 The central candidate command center provides real-time telemetry across all saved resumes and living agents:
 - **Active Resumes Telemetry**: Track primary vs secondary resume versions sorted by recency.
@@ -48,8 +48,8 @@ The central candidate command center provides real-time telemetry across all sav
 
 ---
 
-### 2. Full-Viewport 3-Zone Resume Builder & Multi-Template Engine
-![2. 3-Zone Resume Builder](public/screenshots/03-resume-builder.png)
+### 3. Full-Viewport 3-Zone Resume Builder & Multi-Template Engine
+![3. 3-Zone Resume Builder](public/screenshots/03-resume-builder.png)
 
 A desktop-grade 3-zone workspace engineered for real-time document creation:
 - **Left Control Zone**: Reorder sections via drag-and-drop, add custom sections (*Certifications*, *Projects*, *Achievements*), and toggle template designs.
@@ -59,8 +59,8 @@ A desktop-grade 3-zone workspace engineered for real-time document creation:
 
 ---
 
-### 3. Living Candidate RAG Agent (Flagship Feature)
-![3. Living Candidate RAG Agent](public/screenshots/05-rag-candidate-agent.png)
+### 4. Living Candidate RAG Agent (Flagship Feature)
+![4. Living Candidate RAG Agent](public/screenshots/05-rag-candidate-agent.png)
 
 The flagship conversational AI candidate representation:
 - **RAG Vector Chunk Retrieval**: Candidate experience, project notes, and skills are chunked into vector embeddings.
@@ -70,8 +70,8 @@ The flagship conversational AI candidate representation:
 
 ---
 
-### 4. ATS Analyzer & AI Impact Fix Engine
-![4. ATS Analyzer](public/screenshots/04-ats-analyzer.png)
+### 5. ATS Analyzer & AI Impact Fix Engine
+![5. ATS Analyzer](public/screenshots/04-ats-analyzer.png)
 
 Instant ATS diagnostic and grammar repair suite:
 - **Overall ATS Score Breakdown**: Quantitative score based on keyword density, section headers, contact completeness, and formatting cleanliness.
@@ -80,8 +80,8 @@ Instant ATS diagnostic and grammar repair suite:
 
 ---
 
-### 5. Import Old Resume & Instant ATS Audit
-![5. Import Old Resume](public/screenshots/09-import-old-resume.png)
+### 6. Import Old Resume & Instant ATS Audit Engine
+![6. Import Old Resume](public/screenshots/09-import-old-resume.png)
 
 Seamless onboarding for candidates with existing resumes:
 - **Multi-Format Upload**: Supports PDF, DOCX, or raw text copy-paste up to 10MB.
@@ -90,8 +90,8 @@ Seamless onboarding for candidates with existing resumes:
 
 ---
 
-### 6. Recruiter Surface & Evaluation Companion
-![6. Recruiter Companion](public/screenshots/06-recruiter-dashboard.png)
+### 7. Recruiter Surface & Evaluation Companion
+![7. Recruiter Companion](public/screenshots/06-recruiter-dashboard.png)
 
 A dedicated evaluation interface for recruiters and hiring managers:
 - **Candidate Evaluation Cards**: Review candidate match scores, top technical highlights, and verified GitHub repositories.
@@ -100,8 +100,8 @@ A dedicated evaluation interface for recruiters and hiring managers:
 
 ---
 
-### 7. Claim Verification & Trust Score Engine
-![7. Claim Verification & Trust Score](public/screenshots/07-claim-verification.png)
+### 8. Claim Verification & Trust Score Engine
+![8. Claim Verification & Trust Score](public/screenshots/07-claim-verification.png)
 
 Public evidence matching for candidate resume claims:
 - **Verification Badges**: Categorizes every bullet point into `Verified`, `Unverifiable`, or `Inconsistent`.
@@ -110,17 +110,8 @@ Public evidence matching for candidate resume claims:
 
 ---
 
-### 8. Persistent Skill & Evidence Graph
-![8. Persistent Skill Graph](public/screenshots/08-skill-graph.png)
-
-An interlinked entity graph of technical capabilities:
-- **Skill-Evidence Nodes**: Maps skills (*React*, *Next.js*, *TypeScript*, *Prisma*, *Python*, *PgVector*) to supporting resume bullet snippets.
-- **Proficiency Signals**: Weighted proficiency scores computed from usage frequency across projects and work history.
-
----
-
 ### 9. Voice-Native Career Intake Engine
-![9. Voice Career Intake](public/screenshots/09-voice-intake.png)
+![9. Voice Career Intake](public/screenshots/08-voice-intake.png)
 
 Hands-free career history capture:
 - **Voice Speech Processing**: Candidates speak naturally about past projects, responsibilities, and key metrics.
@@ -128,7 +119,7 @@ Hands-free career history capture:
 
 ---
 
-### 10. Auto-Tailor Opportunities & Application Snapshots
+### 10. Auto-Tailor Opportunities & Application Fit Scoring
 ![10. Opportunities & Auto-Tailor](public/screenshots/10-opportunities-tailor.png)
 
 Targeted job application tailoring:
