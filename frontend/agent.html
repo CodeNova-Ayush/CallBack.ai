@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Living Candidate Agent — Callback AI</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="header-nav">
+    <div class="logo-brand" onclick="window.location.href='index.html'">
+      <div class="logo-icon-sq">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M17 8.5C15.7 7.2 13.9 6.5 12 6.5C8.4 6.5 5.5 9.4 5.5 13C5.5 16.6 8.4 19.5 12 19.5C14.8 19.5 17.2 17.7 18.1 15"/><path d="M14 8.5H17.5V12"/><circle cx="18" cy="6" r="1.5" fill="currentColor"/></svg>
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <span class="logo-title">Callback</span>
+          <span class="logo-badge">AI</span>
+        </div>
+        <span class="logo-tagline">AI Resume & Candidate Agent</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-container">
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-nav-group">
+          <span class="sidebar-group-title">Build</span>
+          <a href="dashboard.html" class="sidebar-link"><span>Dashboard</span></a>
+          <a href="builder.html" class="sidebar-link"><span>Resume Builder</span></a>
+        </div>
+        <div class="sidebar-nav-group">
+          <span class="sidebar-group-title">Agentic Layer</span>
+          <a href="agent.html" class="sidebar-link active"><span>Living Resume Agent</span><span class="badge-sm" style="font-size:9px; font-weight:800; background:rgba(255,255,255,0.2); color:#fff; padding:2px 6px; border-radius:999px;">FLAGSHIP</span></a>
+          <a href="trust.html" class="sidebar-link"><span>Trust Score & Claims</span></a>
+          <a href="recruiter.html" class="sidebar-link"><span>Recruiter Companion</span></a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div style="margin-bottom: 2rem;">
+        <h1 style="font-size: 1.75rem; font-weight: 900; color: #231F1D;">Ayush Mishra — Living Candidate Agent</h1>
+        <p style="font-size: 0.85rem; color: #786F68;">Recruiters can ask free-form follow-up questions grounded strictly in Ayush's verified resume record.</p>
+      </div>
+
+      <!-- Chat Log Box -->
+      <div class="card" style="display: flex; flex-direction: column; gap: 1rem; min-height: 450px; justify-content: space-between;">
+        <div id="chat-messages" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div style="background: #FAF6F0; padding: 1rem; border-radius: 1rem; border: 1px solid #EAE3D5; font-size: 0.85rem;">
+            🤖 <strong>Agent:</strong> Hello! I am Ayush Mishra's Living Candidate Agent. I am grounded strictly in Ayush's verified resume records, project repositories, and skill graph. Ask me anything!
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; border-top: 1px solid #EAE3D5; padding-top: 1rem;">
+          <input type="text" id="agent-question-input" class="form-input" placeholder="e.g. What was Ayush's biggest latency optimization achievement?" onkeydown="if(event.key === 'Enter') handleAskAgent()">
+          <button class="btn-pill btn-primary" onclick="handleAskAgent()">Ask Agent</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    function handleAskAgent() {
+      const input = document.getElementById('agent-question-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const container = document.getElementById('chat-messages');
+
+      // User Message
+      const userDiv = document.createElement('div');
+      userDiv.style.cssText = 'background: #ffffff; border: 1px solid #EAE3D5; padding: 0.85rem 1rem; border-radius: 1rem; font-size: 0.85rem; text-align: right; font-weight: 700; color: #231F1D;';
+      userDiv.innerHTML = '👤 Recruiter: ' + text;
+      container.appendChild(userDiv);
+
+      input.value = '';
+
+      // Agent Reply
+      setTimeout(() => {
+        const res = askAgent(text);
+        const agentDiv = document.createElement('div');
+        agentDiv.style.cssText = 'background: #FDF4F0; border: 1px solid #F6DCD1; padding: 1rem; border-radius: 1rem; font-size: 0.85rem; color: #231F1D;';
+        agentDiv.innerHTML = '🤖 <strong>Agent:</strong> ' + res.reply + '<br><div style="font-size: 0.7rem; font-weight: 700; color: #C85A32; margin-top: 0.5rem;">✔ Source Citation: ' + res.source + '</div>';
+        container.appendChild(agentDiv);
+      }, 300);
+    }
+  </script>
+</body>
+</html>
