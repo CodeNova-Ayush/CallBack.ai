@@ -8,11 +8,11 @@
 [![Prisma ORM 5.22](https://img.shields.io/badge/Prisma_ORM-5.22-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
 [![Clerk Auth](https://img.shields.io/badge/Clerk-Auth-6C47FF?style=for-the-badge&logo=clerk)](https://clerk.com/)
 
-[Live App](http://localhost:3000) • [Architecture](#-system-architecture) • [Features & Interface Screenshots](#-deep-feature-breakdown--interface-gallery) • [Backend API Spec](#-backend-api-specification) • [Local Setup](#-getting-started--local-setup)
+[Live App](http://localhost:3000) • [Architecture](#-system-architecture) • [Features & Interface Gallery](#-deep-feature-breakdown--interface-gallery) • [Backend API Spec](#-backend-api-specification) • [Local Setup](#-getting-started--local-setup)
 
 ---
 
-## 🌟 YC-Stage Product Vision
+## 🌟 Product Vision & YC-Stage Value Proposition
 
 ### The Problem
 Traditional hiring is broken by **static 1-page PDF resumes**:
@@ -37,7 +37,7 @@ The YC-stage landing page features a live interactive preview widget, full 15+ t
 
 ---
 
-### 2. Candidate Management Dashboard
+### 2. Candidate Workspace Dashboard
 ![2. Candidate Dashboard](public/screenshots/02-candidate-dashboard.png)
 
 The central candidate command center provides real-time telemetry across all saved resumes and living agents:
@@ -48,19 +48,8 @@ The central candidate command center provides real-time telemetry across all sav
 
 ---
 
-### 3. Full-Viewport 3-Zone Resume Builder & Multi-Template Engine
-![3. 3-Zone Resume Builder](public/screenshots/03-resume-builder.png)
-
-A desktop-grade 3-zone workspace engineered for real-time document creation:
-- **Left Control Zone**: Reorder sections via drag-and-drop, add custom sections (*Certifications*, *Projects*, *Achievements*), and toggle template designs.
-- **Center Editor Zone**: Form fields with real-time AI bullet point enhancement for action verbs and quantified metrics.
-- **Right Vector Preview Zone**: Debounced real-time A4 printable preview matching exact CSS `@media print` physical page boundaries.
-- **Template Library**: Switch instantly between *Modern Executive* (terracotta accent), *Classic ATS Standard* (serif headers), *Minimalist Tech* (monospace dev style), and *Midnight Navy Sidebar*.
-
----
-
-### 4. Living Candidate RAG Agent (Flagship Feature)
-![4. Living Candidate RAG Agent](public/screenshots/05-rag-candidate-agent.png)
+### 3. Living Candidate RAG Agent (Flagship Feature)
+![3. Living Candidate RAG Agent](public/screenshots/05-rag-candidate-agent.png)
 
 The flagship conversational AI candidate representation:
 - **RAG Vector Chunk Retrieval**: Candidate experience, project notes, and skills are chunked into vector embeddings.
@@ -70,8 +59,17 @@ The flagship conversational AI candidate representation:
 
 ---
 
+### 4. Full-Viewport 3-Zone Resume Builder & Multi-Template Engine
+
+A desktop-grade 3-zone workspace engineered for real-time document creation:
+- **Left Control Zone**: Reorder sections via drag-and-drop, add custom sections (*Certifications*, *Projects*, *Achievements*), and toggle template designs.
+- **Center Editor Zone**: Form fields with real-time AI bullet point enhancement for action verbs and quantified metrics.
+- **Right Vector Preview Zone**: Debounced real-time A4 printable preview matching exact CSS `@media print` physical page boundaries.
+- **Template Library**: Switch instantly between *Modern Executive* (terracotta accent), *Classic ATS Standard* (serif headers), *Minimalist Tech* (monospace dev style), and *Midnight Navy Sidebar*.
+
+---
+
 ### 5. ATS Analyzer & AI Impact Fix Engine
-![5. ATS Analyzer](public/screenshots/04-ats-analyzer.png)
 
 Instant ATS diagnostic and grammar repair suite:
 - **Overall ATS Score Breakdown**: Quantitative score based on keyword density, section headers, contact completeness, and formatting cleanliness.
@@ -90,18 +88,8 @@ Seamless onboarding for candidates with existing resumes:
 
 ---
 
-### 7. Recruiter Surface & Evaluation Companion
-![7. Recruiter Companion](public/screenshots/06-recruiter-dashboard.png)
-
-A dedicated evaluation interface for recruiters and hiring managers:
-- **Candidate Evaluation Cards**: Review candidate match scores, top technical highlights, and verified GitHub repositories.
-- **Interactive Agent Q&A Drawer**: Initiate conversational screening directly inside the recruiter dashboard.
-- **1-Click Interview Scheduling**: Seamless transition from agent screening to candidate interview booking.
-
----
-
-### 8. Claim Verification & Trust Score Engine
-![8. Claim Verification & Trust Score](public/screenshots/07-claim-verification.png)
+### 7. Claim Verification & Trust Score Engine
+![7. Trust Score & Verification Claims](public/screenshots/07-claim-verification.png)
 
 Public evidence matching for candidate resume claims:
 - **Verification Badges**: Categorizes every bullet point into `Verified`, `Unverifiable`, or `Inconsistent`.
@@ -110,8 +98,8 @@ Public evidence matching for candidate resume claims:
 
 ---
 
-### 9. Voice-Native Career Intake Engine
-![9. Voice Career Intake](public/screenshots/08-voice-intake.png)
+### 8. Voice-Native Career Intake Engine
+![8. Voice Career Intake](public/screenshots/08-voice-intake.png)
 
 Hands-free career history capture:
 - **Voice Speech Processing**: Candidates speak naturally about past projects, responsibilities, and key metrics.
@@ -119,13 +107,30 @@ Hands-free career history capture:
 
 ---
 
-### 10. Auto-Tailor Opportunities & Application Fit Scoring
-![10. Opportunities & Auto-Tailor](public/screenshots/10-opportunities-tailor.png)
+### 9. Auto-Tailor Opportunities & Fit Scoring Engine
+![9. Opportunities & Auto-Tailor](public/screenshots/10-opportunities-tailor.png)
 
 Targeted job application tailoring:
 - **Job Description Parsing**: Analyzes target postings (*Senior AI Application Engineer at Vercel Labs*) and extracts required skills.
 - **Fit Scoring**: Calculates percentage match (`96% Fit`) and highlights keyword gaps.
 - **Tailored Snapshots & Diff View**: Generates tailored resume versions with side-by-side diff comparison before applying.
+
+---
+
+### 10. Recruiter Companion & Evaluation Surface
+
+A dedicated evaluation interface for recruiters and hiring managers:
+- **Candidate Evaluation Cards**: Review candidate match scores, top technical highlights, and verified GitHub repositories.
+- **Interactive Agent Q&A Drawer**: Initiate conversational screening directly inside the recruiter dashboard.
+- **1-Click Interview Scheduling**: Seamless transition from agent screening to candidate interview booking.
+
+---
+
+### 11. Persistent Skill & Evidence Graph
+
+An interlinked entity graph of technical capabilities:
+- **Skill-Evidence Nodes**: Maps skills (*React*, *Next.js*, *TypeScript*, *Prisma*, *Python*, *PgVector*) to supporting resume bullet snippets.
+- **Proficiency Signals**: Weighted proficiency scores computed from usage frequency across projects and work history.
 
 ---
 
