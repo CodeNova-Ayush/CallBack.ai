@@ -95,8 +95,8 @@ export default function LandingPage() {
             {/* Quick Metrics Bar */}
             <div className="grid grid-cols-3 gap-4 w-full py-3 border-y border-[#EAE3D5]/80 my-2">
               <div className="flex flex-col">
-                <span className="text-xl sm:text-2xl font-extrabold text-[#231F1D]">4 Themes</span>
-                <span className="text-[11px] font-bold text-[#786F68] uppercase">ATS Templates</span>
+                <span className="text-xl sm:text-2xl font-extrabold text-[#231F1D]">15+ Templates</span>
+                <span className="text-[11px] font-bold text-[#786F68] uppercase">ATS Library</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-xl sm:text-2xl font-extrabold text-[#C85A32]">94%</span>
@@ -232,13 +232,13 @@ export default function LandingPage() {
         <div className="w-full max-w-7xl mx-auto flex flex-col gap-12">
           <div className="text-center max-w-3xl mx-auto flex flex-col items-center gap-3">
             <Badge variant="terracotta" size="sm">
-              <Layout className="w-3.5 h-3.5" /> Multiple Resume Page Designs
+              <Layout className="w-3.5 h-3.5" /> Full 15+ Resume Template Library
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-[#231F1D] tracking-tight">
-              Choose from Multiple Professional Resume Templates
+              Choose from the Same 15+ Templates Available in Builder
             </h2>
             <p className="text-base text-[#786F68]">
-              Switch templates anytime in the 3-zone builder with a single click. Every template is 100% ATS-tested and exportable to printable PDF.
+              Switch templates anytime in the 3-zone builder with a single click. Every template is 100% ATS-tested, connected to uploaded resume data, and exportable to printable PDF.
             </p>
           </div>
 
@@ -318,6 +318,49 @@ export default function LandingPage() {
                   <div className="w-full h-1 bg-gray-400 rounded" />
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-[#EAE3D5] bg-[#FAF6F0] p-6 flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-extrabold text-[#231F1D]">Live Builder Collection</h3>
+                <p className="text-sm text-[#786F68]">
+                  These are the production renderer options users can open, switch, preview, and export after uploading a resume.
+                </p>
+              </div>
+              <Link href="/builder/demo-resume-alex-1">
+                <Button variant="primary" size="sm" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                  Open Full Builder
+                </Button>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+              {[
+                'Ayush Executive',
+                'Double Column',
+                'Ivy League',
+                'Elegant',
+                'Crest',
+                'Single Column',
+                'Polished',
+                'Imprint',
+                'Timeline',
+                'Creative',
+                'Stylish',
+                'Modern',
+                'Contemporary',
+                'Navy Header',
+                'Minimalist Tech',
+              ].map((name) => (
+                <span
+                  key={name}
+                  className="px-3 py-2 bg-white border border-[#EAE3D5] rounded-xl text-xs font-bold text-[#4A423C] text-center"
+                >
+                  {name}
+                </span>
+              ))}
             </div>
           </div>
         </div>
