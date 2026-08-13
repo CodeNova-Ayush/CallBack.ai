@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+@theme {
+  --color-terracotta-500: #C85A32;
+  --color-terracotta-600: #B24D28;
+  --color-espresso-500: #786F68;
+  --color-espresso-900: #231F1D;
+}
+
 @layer base {
   :root {
     --background: #FAF6F0;
