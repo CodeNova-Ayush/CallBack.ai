@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Candidate Dashboard — Callback AI</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="header-nav">
+    <div class="logo-brand" onclick="window.location.href='index.html'">
+      <div class="logo-icon-sq">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M17 8.5C15.7 7.2 13.9 6.5 12 6.5C8.4 6.5 5.5 9.4 5.5 13C5.5 16.6 8.4 19.5 12 19.5C14.8 19.5 17.2 17.7 18.1 15"/><path d="M14 8.5H17.5V12"/><circle cx="18" cy="6" r="1.5" fill="currentColor"/></svg>
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <span class="logo-title">Callback</span>
+          <span class="logo-badge">AI</span>
+        </div>
+        <span class="logo-tagline">AI Resume & Candidate Agent</span>
+      </div>
+    </div>
+
+    <div style="display: flex; items-center; gap: 1rem;">
+      <a href="builder.html" class="btn-pill btn-secondary" onclick="clearCandidateData()">+ Create Blank Resume</a>
+      <a href="builder.html" class="btn-pill btn-primary">Open Active Builder →</a>
+    </div>
+  </header>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-nav-group">
+          <span class="sidebar-group-title">Build</span>
+          <a href="dashboard.html" class="sidebar-link active"><span>Dashboard</span></a>
+          <a href="builder.html" class="sidebar-link"><span>Resume Builder</span></a>
+        </div>
+        <div class="sidebar-nav-group">
+          <span class="sidebar-group-title">Agentic Layer</span>
+          <a href="agent.html" class="sidebar-link"><span>Living Resume Agent</span><span class="badge-sm" style="font-size:9px; font-weight:800; background:#FDF4F0; color:#C85A32; padding:2px 6px; border-radius:999px;">FLAGSHIP</span></a>
+          <a href="trust.html" class="sidebar-link"><span>Trust Score & Claims</span></a>
+          <a href="recruiter.html" class="sidebar-link"><span>Recruiter Companion</span></a>
+        </div>
+      </div>
+
+      <div style="padding-top: 1rem; border-top: 1px solid #EAE3D5; display: flex; align-items: center; gap: 0.75rem;">
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: #C85A32; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">AM</div>
+        <div style="display: flex; flex-direction: column;">
+          <span style="font-size: 0.8rem; font-weight: 800; color: #231F1D;">Ayush Mishra</span>
+          <span style="font-size: 0.65rem; color: #786F68;">ayush.mishra@demo.com</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Dashboard View -->
+    <main class="main-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid #EAE3D5; padding-bottom: 1rem;">
+        <div>
+          <h1 style="font-size: 1.75rem; font-weight: 900; color: #231F1D;">Candidate Dashboard</h1>
+          <p style="font-size: 0.85rem; color: #786F68;">Manage your ATS resumes, select templates, and candidate agents.</p>
+        </div>
+      </div>
+
+      <!-- Resumes List Grid -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div>
+              <h3 style="font-size: 1rem; font-weight: 800; color: #231F1D;">Ayush Mishra — Senior Full-Stack & AI Engineer</h3>
+              <span style="font-size: 0.75rem; color: #786F68;">Updated 2 hours ago • <strong style="color: #C85A32;">Modern Executive</strong></span>
+            </div>
+            <span class="badge badge-terracotta">Active Primary</span>
+          </div>
+
+          <div style="background: #FAF6F0; padding: 1rem; border-radius: 0.75rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; border: 1px solid #EAE3D5;">
+            <div>
+              <span style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: #786F68;">ATS Score</span>
+              <div style="font-size: 1.25rem; font-weight: 900; color: #2E7D32;">94 / 100</div>
+            </div>
+            <div>
+              <span style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: #786F68;">Trust Score</span>
+              <div style="font-size: 1.25rem; font-weight: 900; color: #C85A32;">96% Verified</div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; border-top: 1px solid #EAE3D5; padding-top: 1rem;">
+            <a href="builder.html" class="btn-pill btn-primary" style="padding: 0.45rem 1rem; font-size: 0.75rem;">Edit Builder</a>
+            <a href="agent.html" class="btn-pill btn-secondary" style="padding: 0.45rem 1rem; font-size: 0.75rem;">Chat Agent</a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
