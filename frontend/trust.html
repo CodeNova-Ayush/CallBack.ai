@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claim Verification & Trust Score — Callback AI</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="header-nav">
+    <div class="logo-brand" onclick="window.location.href='index.html'">
+      <div class="logo-icon-sq">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M17 8.5C15.7 7.2 13.9 6.5 12 6.5C8.4 6.5 5.5 9.4 5.5 13C5.5 16.6 8.4 19.5 12 19.5C14.8 19.5 17.2 17.7 18.1 15"/><path d="M14 8.5H17.5V12"/><circle cx="18" cy="6" r="1.5" fill="currentColor"/></svg>
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <span class="logo-title">Callback</span>
+          <span class="logo-badge">AI</span>
+        </div>
+        <span class="logo-tagline">AI Resume & Candidate Agent</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-container">
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-nav-group">
+          <span class="sidebar-group-title">Build</span>
+          <a href="dashboard.html" class="sidebar-link"><span>Dashboard</span></a>
+          <a href="builder.html" class="sidebar-link"><span>Resume Builder</span></a>
+        </div>
+        <div class="sidebar-nav-group">
+          <span class="sidebar-group-title">Agentic Layer</span>
+          <a href="agent.html" class="sidebar-link"><span>Living Resume Agent</span></a>
+          <a href="trust.html" class="sidebar-link active"><span>Trust Score & Claims</span></a>
+          <a href="recruiter.html" class="sidebar-link"><span>Recruiter Companion</span></a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div style="margin-bottom: 2rem; border-bottom: 1px solid #EAE3D5; padding-bottom: 1rem;">
+        <h1 style="font-size: 1.75rem; font-weight: 900; color: #231F1D;">Claim Verification & Trust Score</h1>
+        <p style="font-size: 0.85rem; color: #786F68;">Every claim on Ayush Mishra's resume is cross-verified against public repositories, commits, & certificates.</p>
+      </div>
+
+      <div class="card" style="margin-bottom: 1.5rem; background: #FAF6F0; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #786F68;">Overall Candidate Trust Score</span>
+          <div style="font-size: 2rem; font-weight: 900; color: #C85A32;">96% Verified</div>
+        </div>
+        <span class="badge badge-success">4 Verified Claims</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h4 style="font-size: 0.9rem; font-weight: 800; color: #231F1D;">Architected RAG query pipeline using Next.js 14 & PgVector</h4>
+            <span style="font-size: 0.75rem; color: #786F68;">Evidence: GitHub repository ayushmishra-ai/neurodraft</span>
+          </div>
+          <span class="badge badge-success">Verified Match (96%)</span>
+        </div>
+
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h4 style="font-size: 0.9rem; font-weight: 800; color: #231F1D;">B.S. in Computer Science — UC Berkeley (GPA 3.88 / 4.0)</h4>
+            <span style="font-size: 0.75rem; color: #786F68;">Evidence: National Student Clearinghouse Record</span>
+          </div>
+          <span class="badge badge-success">Verified Record (100%)</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
