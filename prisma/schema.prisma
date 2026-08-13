@@ -1,0 +1,174 @@
+// Prisma Schema for AI Resume Builder & Analyzer (with Agentic Layer)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("candidate") // "candidate" or "recruiter"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  resumes         Resume[]
+  skillGraph      SkillGraph[]
+  jobDescriptions JobDescription[]
+  embeddings      EmbeddingChunk[]
+}
+
+model Resume {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String   @default("Untitled Resume")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sections           ResumeSection[]
+  matchResults       MatchResult[]
+  analysisResults    AnalysisResult[]
+  verificationClaims VerificationClaim[]
+  conversations      AgentConversation[]
+  applicationDrafts  ApplicationDraft[]
+  embeddingChunks    EmbeddingChunk[]
+}
+
+model ResumeSection {
+  id          String   @id @default(uuid())
+  resumeId    String
+  sectionType String   // personal_info, education, experience, projects, skills, certifications, achievements, positions_of_responsibility, languages, interests
+  order       Int
+  content     String   // Structured JSON string
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model SkillGraph {
+  id                String   @id @default(uuid())
+  userId            String
+  skillName         String
+  proficiencySignal Float    @default(0.8) // 0.0 to 1.0
+  evidenceJson      String   // Array of references: [{ sectionId, textSnippet }]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model JobDescription {
+  id                     String   @id @default(uuid())
+  userId                 String
+  title                  String   @default("Target Position")
+  rawText                String
+  parsedRequirementsJson String   // Structured JSON string
+  createdAt              DateTime @default(now())
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matchResults MatchResult[]
+}
+
+model MatchResult {
+  id                     String   @id @default(uuid())
+  resumeId               String
+  jobDescriptionId       String
+  overallMatchPercentage Int
+  missingKeywordsJson    String   // Stringified array
+  skillGapsJson          String   // Stringified array
+  experienceGapsJson     String   // Stringified array
+  recommendationsJson    String   // Stringified array
+  createdAt              DateTime @default(now())
+
+  resume         Resume         @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  jobDescription JobDescription @relation(fields: [jobDescriptionId], references: [id], onDelete: Cascade)
+}
+
+model AnalysisResult {
+  id                          String   @id @default(uuid())
+  resumeId                    String
+  atsScore                    Int
+  formattingIssuesJson        String   // Stringified array
+  missingSectionsJson         String   // Stringified array
+  readabilityScore            Int
+  grammarIssuesJson           String   // Stringified array of fixes
+  overallStrengthScore        Int
+  scoringRubricBreakdownJson  String   // JSON of categories & scores
+  createdAt                   DateTime @default(now())
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model VerificationClaim {
+  id               String   @id @default(uuid())
+  resumeId         String
+  resumeSectionId  String?
+  claimText        String
+  status           String   @default("unverifiable") // "verified", "unverifiable", "inconsistent"
+  evidenceSource   String?  // e.g. "GitHub: ayush/repo-x"
+  confidenceNote   String?
+  specificityScore Int      @default(75) // 0-100
+  createdAt        DateTime @default(now())
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model EmbeddingChunk {
+  id         String   @id @default(uuid())
+  userId     String
+  resumeId   String?
+  sourceType String   // "experience", "project", "skill", "portfolio"
+  sourceText String
+  vectorJson String   // JSON array representation of vector embedding
+  createdAt  DateTime @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume Resume? @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model AgentConversation {
+  id           String   @id @default(uuid())
+  resumeId     String
+  initiatedBy  String   @default("candidate") // "candidate" or "recruiter"
+  messagesJson String   // Array of { id, role, content, citedSources, timestamp }
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model JobPosting {
+  id                     String   @id @default(uuid())
+  externalSource         String   @default("LinkedIn Jobs")
+  title                  String
+  company                String
+  location               String   @default("Remote")
+  rawDescription         String
+  parsedRequirementsJson String   // JSON of required skills & qualifications
+  postedDate             String   @default("2 days ago")
+  createdAt              DateTime @default(now())
+
+  applicationDrafts ApplicationDraft[]
+}
+
+model ApplicationDraft {
+  id                          String   @id @default(uuid())
+  resumeId                    String
+  jobPostingId                String
+  fitScore                    Int
+  tailoredResumeSnapshotJson  String   // JSON of tailored resume
+  draftNoteText               String
+  status                      String   @default("draft") // "draft", "reviewed", "applied"
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+
+  resume     Resume     @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  jobPosting JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+}
