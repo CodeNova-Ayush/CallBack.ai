@@ -120,9 +120,7 @@ export const Sidebar: React.FC = () => {
     <aside className="w-64 bg-[#FAF6F0] border-r border-[#EAE3D5] h-screen sticky top-0 flex flex-col shrink-0 select-none z-30 print:hidden no-print">
       {/* Brand Header */}
       <div className="p-4 border-b border-[#EAE3D5]">
-        <Link href="/">
-          <Logo size="md" showTagline />
-        </Link>
+        <Logo size="md" showTagline />
       </div>
 
       {/* Navigation Group Items */}
