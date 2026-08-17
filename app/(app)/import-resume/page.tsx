@@ -31,9 +31,9 @@ const SAMPLE_OLD_RESUMES = [
     id: 'sample-fullstack',
     title: 'Senior Full-Stack & AI Engineer (Old Resume)',
     badge: 'Recommended',
-    text: `Ayush Mishra
-ayush.mishra@demo.com | +1 (555) 019-2834 | San Francisco, CA
-https://linkedin.com/in/ayushmishra | https://github.com/ayushmishra
+    text: `John Snow
+john.snow@demo.com | +1 (555) 019-2834 | San Francisco, CA
+https://linkedin.com/in/johnsnowdev | https://github.com/johnsnow-ai
 
 SUMMARY
 Senior Software Engineer with 5+ years of experience building scalable web applications and AI platforms. Responsible for database optimization, team leadership, and frontend design.
@@ -58,8 +58,8 @@ React, Next.js, TypeScript, Node.js, Python, PostgreSQL, Prisma, Tailwind CSS, D
     id: 'sample-frontend',
     title: 'Frontend Architect (Old Resume)',
     badge: 'Design Focus',
-    text: `Ayush Mishra
-ayush.frontend@demo.com | +1 (555) 432-8765 | San Francisco, CA
+    text: `John Snow
+john.snow@demo.com | +1 (555) 432-8765 | San Francisco, CA
 
 PROFESSIONAL SUMMARY
 Frontend engineer passionate about design systems, micro-frontend architecture, and web performance optimization.
@@ -121,15 +121,27 @@ export default function ImportOldResumePage() {
     setTimeout(() => setProcessingStep(3), 1400);
 
     try {
-      const res = await fetch('/api/resumes/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          rawText,
-          customTitle: resumeTitle || 'Uploaded Old Resume',
-          fileName: selectedFile?.name,
-        }),
-      });
+      let res: Response;
+      if (activeTab === 'upload' && selectedFile) {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        if (resumeTitle) formData.append('customTitle', resumeTitle);
+        res = await fetch('/api/resumes/import', {
+          method: 'POST',
+          body: formData,
+        });
+      } else {
+        const rawText = pastedText.trim() || SAMPLE_OLD_RESUMES[0].text;
+        res = await fetch('/api/resumes/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rawText,
+            customTitle: resumeTitle || undefined,
+            fileName: selectedFile?.name,
+          }),
+        });
+      }
 
       const data = await res.json();
 
@@ -140,7 +152,7 @@ export default function ImportOldResumePage() {
         } else {
           alert(data.error || 'Failed to analyze resume');
         }
-      }, 2000);
+      }, 1000);
     } catch (err) {
       console.error(err);
       setIsProcessing(false);
@@ -198,7 +210,7 @@ export default function ImportOldResumePage() {
 
               <Input
                 label="Resume Target Title (Optional)"
-                placeholder="e.g. Ayush Mishra — Senior Full-Stack & AI Engineer"
+                placeholder="e.g. John Snow — Senior Full-Stack & AI Engineer"
                 value={resumeTitle}
                 onChange={(e) => setResumeTitle(e.target.value)}
               />
@@ -237,15 +249,56 @@ export default function ImportOldResumePage() {
                 </div>
               )}
 
-              <Button
-                variant="primary"
-                size="lg"
-                leftIcon={<Sparkles className="w-5 h-5" />}
-                onClick={handleRunATSAudit}
-                className="w-full"
-              >
-                Run ATS Audit & Unlock Flagship Features
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  leftIcon={<Bot className="w-5 h-5" />}
+                  onClick={async () => {
+                    if (activeTab === 'paste' && !pastedText.trim()) {
+                      return alert('Please paste your resume text to talk with agent');
+                    }
+                    if (activeTab === 'upload' && !selectedFile) {
+                      return alert('Please select a resume file (PDF, DOCX, TXT) from your computer');
+                    }
+                    setIsProcessing(true);
+                    try {
+                      let res: Response;
+                      if (activeTab === 'upload' && selectedFile) {
+                        const formData = new FormData();
+                        formData.append('file', selectedFile);
+                        if (resumeTitle) formData.append('customTitle', resumeTitle);
+                        res = await fetch('/api/resumes/import', {
+                          method: 'POST',
+                          body: formData,
+                        });
+                      } else {
+                        res = await fetch('/api/resumes/import', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ rawText: pastedText, customTitle: resumeTitle || undefined }),
+                        });
+                      }
+                      const data = await res.json();
+                      if (data.resumeId) router.push(`/agent/${data.resumeId}`);
+                    } catch (e) {
+                      setIsProcessing(false);
+                    }
+                  }}
+                  className="flex-1 bg-[#C85A32] hover:bg-[#B34D28] text-white font-bold"
+                >
+                  Import & Talk with Agent
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  leftIcon={<Sparkles className="w-5 h-5" />}
+                  onClick={handleRunATSAudit}
+                  className="flex-1"
+                >
+                  Run ATS Audit
+                </Button>
+              </div>
             </Card>
           </div>
 
@@ -318,7 +371,35 @@ export default function ImportOldResumePage() {
 
       {/* Analysis Results & Flagship Features Unlocked */}
       {analysisResult && !isProcessing && (
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-6">
+          {/* Talk with Living Agent Top Callout */}
+          <div className="bg-[#FAF6F0] border-2 border-[#C85A32] rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-[#C85A32] text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                <Bot className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-black text-gray-900">Talk with This Candidate's Living Agent Now</h3>
+                  <Badge variant="terracotta" size="sm">Zero Hallucination</Badge>
+                </div>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  The LLM has parsed and loaded all work experience, latency metrics, and verified skills into an anti-hallucination conversational agent.
+                </p>
+              </div>
+            </div>
+            <Link href={analysisResult.flagshipUrls.agentChat}>
+              <Button
+                variant="primary"
+                size="md"
+                className="bg-[#C85A32] hover:bg-[#B34D28] text-white font-bold whitespace-nowrap"
+                rightIcon={<ArrowRight className="w-4 h-4" />}
+              >
+                Open Agent & Start Chatting
+              </Button>
+            </Link>
+          </div>
+
           {/* Top Score Banner */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="flex flex-col items-center justify-center p-8 bg-white border border-[#EAE3D5] text-center gap-4">
