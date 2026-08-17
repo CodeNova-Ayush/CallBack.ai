@@ -67,7 +67,9 @@ export default function AnalyzerPage(props: { params: Promise<{ resumeId: string
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Badge variant="indigo" size="sm">ATS Engine v3.4</Badge>
-            <span className="text-xs text-gray-500">Ayush Mishra — Senior Full-Stack & AI Engineer</span>
+            <span className="text-xs text-gray-500 font-medium">
+              {analysis.candidateName || 'Candidate Profile'} {analysis.candidateTitle ? `— ${analysis.candidateTitle}` : ''}
+            </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">ATS Resume Analyzer & Audit</h1>
         </div>
