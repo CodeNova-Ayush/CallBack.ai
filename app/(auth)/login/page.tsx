@@ -12,7 +12,7 @@ import { Logo } from '@/components/ui/Logo';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('ayush.mishra@demo.com');
+  const [email, setEmail] = useState('john.snow@demo.com');
   const [password, setPassword] = useState('••••••••••••');
   const [isLoading, setIsLoading] = useState(false);
 
