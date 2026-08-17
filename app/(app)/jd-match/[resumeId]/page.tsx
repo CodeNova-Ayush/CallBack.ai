@@ -70,7 +70,7 @@ Requirements:
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Job Description Matcher</h1>
           <p className="text-xs md:text-sm text-gray-500 mt-1">
-            Compare Ayush Mishra's resume against target position requirements to surface keyword & skill gaps.
+            Compare this candidate's verified resume against target position requirements to surface keyword & skill gaps.
           </p>
         </div>
       </div>
