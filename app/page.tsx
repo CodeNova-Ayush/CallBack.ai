@@ -37,6 +37,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Card';
 import { Logo } from '@/components/ui/Logo';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LandingPage() {
   const [heroTemplateMode, setHeroTemplateMode] = useState<
@@ -81,7 +82,7 @@ export default function LandingPage() {
     },
   ];
 
-  // Auto-cycling timer for live template morphing
+  // Fast 2-Second Auto-cycling timer for live template morphing
   useEffect(() => {
     if (!isAutoCycling) return;
 
@@ -97,9 +98,9 @@ export default function LandingPage() {
           });
           return 0;
         }
-        return prev + 2.5;
+        return prev + 2.5; // 2.5% every 50ms = exactly 2000ms (2 seconds)
       });
-    }, 100);
+    }, 50);
 
     return () => clearInterval(interval);
   }, [isAutoCycling]);
@@ -309,176 +310,213 @@ export default function LandingPage() {
                 </button>
               </div>
 
-              {/* Dynamic Live-Morphing Viewport */}
+              {/* Dynamic Live-Morphing Viewport with 2-Second Cross-Fade */}
               <div className="relative z-10 min-h-[260px] flex flex-col justify-center">
-                {/* 1. Modern Executive Morphing View */}
-                {heroTemplateMode === 'modern_executive' && (
-                  <div className="bg-white border border-[#EAE3D5] rounded-2xl p-5 shadow-xs flex flex-col gap-3.5 animate-in fade-in duration-300">
-                    <div className="bg-gradient-to-r from-[#FDF4F0] via-white to-[#FDF4F0] border-l-4 border-[#C85A32] p-3 rounded-r-xl flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-base font-black text-[#231F1D] tracking-tight">JOHN SNOW</span>
-                        <span className="text-xs font-bold text-[#C85A32]">Senior AI & Full-Stack Systems Architect</span>
-                      </div>
-                      <span className="px-2.5 py-1 text-[10px] font-extrabold bg-[#C85A32] text-white rounded-full">
-                        Modern Executive
-                      </span>
-                    </div>
-
-                    <div className="flex flex-col gap-2 text-xs">
-                      <div className="flex items-center justify-between font-bold text-[#231F1D]">
-                        <span className="flex items-center gap-1.5">
-                          <Zap className="w-3.5 h-3.5 text-[#C85A32]" /> Aether Cloud Tech — Senior AI Engineer
+                <AnimatePresence mode="wait">
+                  {/* 1. Modern Executive Morphing View */}
+                  {heroTemplateMode === 'modern_executive' && (
+                    <motion.div
+                      key="modern_executive"
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                      transition={{ duration: 0.25, ease: 'easeOut' }}
+                      className="bg-white border border-[#EAE3D5] rounded-2xl p-5 shadow-xs flex flex-col gap-3.5"
+                    >
+                      <div className="bg-gradient-to-r from-[#FDF4F0] via-white to-[#FDF4F0] border-l-4 border-[#C85A32] p-3 rounded-r-xl flex items-center justify-between">
+                        <div className="flex flex-col">
+                          <span className="text-base font-black text-[#231F1D] tracking-tight">JOHN SNOW</span>
+                          <span className="text-xs font-bold text-[#C85A32]">Senior AI & Full-Stack Systems Architect</span>
+                        </div>
+                        <span className="px-2.5 py-1 text-[10px] font-extrabold bg-[#C85A32] text-white rounded-full">
+                          Modern Executive
                         </span>
-                        <span className="text-[10px] text-gray-500 font-mono">2023 – Present</span>
                       </div>
-                      <p className="text-[11px] text-[#786F68] leading-relaxed bg-[#FAF6F0] p-2.5 rounded-xl border border-[#EAE3D5]">
-                        "Architected scalable PgVector RAG query pipeline handling 150k daily active requests at 180ms p95 latency."
-                      </p>
-                    </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-[#EAE3D5] text-[10px]">
-                      <div className="flex items-center gap-1.5 text-emerald-700 font-bold">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Workday & Greenhouse Formatted
-                      </div>
-                      <span className="text-[#C85A32] font-bold">96% ATS Compatibility</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* 2. Minimalist Tech Morphing View (Dark Developer Mode) */}
-                {heroTemplateMode === 'minimalist_tech' && (
-                  <div className="bg-[#18181B] text-zinc-200 border border-zinc-800 rounded-2xl p-5 shadow-inner flex flex-col gap-3 font-mono text-xs animate-in fade-in duration-300">
-                    <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-                      <span className="text-emerald-400 font-bold flex items-center gap-1.5 text-[11px]">
-                        <Terminal className="w-3.5 h-3.5" /> // JOHN_SNOW_SYSTEMS.ts
-                      </span>
-                      <span className="text-[9px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded border border-zinc-700">
-                        DEV_LAYOUT
-                      </span>
-                    </div>
-
-                    <div className="bg-black/50 p-3 rounded-xl border border-zinc-800/80 text-[11px] leading-relaxed flex flex-col gap-1 text-zinc-300">
-                      <span className="text-purple-400">const <span className="text-yellow-300">experience</span> = &#123;</span>
-                      <span className="pl-3 text-zinc-400">role: <span className="text-emerald-300">"Senior AI Engineer"</span>,</span>
-                      <span className="pl-3 text-zinc-400">metric: <span className="text-emerald-300">"45% latency cut (180ms p95) at 150k DAU"</span>,</span>
-                      <span className="pl-3 text-zinc-400">tech: [<span className="text-orange-300">"Next.js 16"</span>, <span className="text-orange-300">"PgVector"</span>, <span className="text-orange-300">"Claude 3.5"</span>]</span>
-                      <span className="text-purple-400">&#125;;</span>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-1 text-[10px] text-zinc-500">
-                      <span className="text-emerald-400 flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" /> GitHub Commits Verified
-                      </span>
-                      <span className="text-zinc-400 font-bold">95% Technical ATS</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* 3. Classic ATS Standard Morphing View */}
-                {heroTemplateMode === 'classic_ats' && (
-                  <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs flex flex-col gap-3 font-serif animate-in fade-in duration-300">
-                    <div className="text-center border-b border-gray-200 pb-2.5 flex flex-col">
-                      <span className="text-base font-black text-gray-900 tracking-wider">JOHN SNOW</span>
-                      <span className="text-[10px] text-gray-600 font-sans">San Francisco, CA • john.snow@demo.com • (555) 234-5678</span>
-                    </div>
-
-                    <div className="flex flex-col gap-1.5 text-xs text-gray-800 font-sans">
-                      <div className="flex justify-between font-bold border-b border-gray-100 pb-0.5">
-                        <span className="text-gray-900">EXPERIENCE: Aether Cloud Tech</span>
-                        <span className="text-[10px] text-gray-500 font-mono">2023 – Present</span>
-                      </div>
-                      <ul className="list-disc list-inside text-[11px] text-gray-600 space-y-1 pl-1">
-                        <li>Architected scalable PgVector RAG query pipeline handling 150k daily requests at 180ms p95 latency.</li>
-                        <li>Reduced model hallucination below 0.4% with custom evaluation suite.</li>
-                      </ul>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-[10px] font-sans">
-                      <span className="text-emerald-700 font-bold">✔ Fortune 500 ATS Standard (Taleo, Workday)</span>
-                      <span className="font-extrabold text-gray-900">98% Extractable</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* 4. Editorial Two-Column Morphing View */}
-                {heroTemplateMode === 'editorial_two_col' && (
-                  <div className="bg-white border border-[#EAE3D5] rounded-2xl p-4 shadow-xs grid grid-cols-12 gap-3 text-xs animate-in fade-in duration-300">
-                    <div className="col-span-4 bg-[#FAF6F0] p-3 rounded-xl border border-[#EAE3D5] flex flex-col gap-2">
-                      <span className="text-[11px] font-black text-[#231F1D]">John Snow</span>
-                      <span className="text-[9px] text-[#C85A32] font-bold uppercase">Skills & Education</span>
-                      <div className="flex flex-wrap gap-1">
-                        {['TypeScript', 'PgVector', 'Next.js', 'Python'].map((s) => (
-                          <span key={s} className="px-1.5 py-0.5 text-[8px] bg-white border border-[#EAE3D5] rounded font-bold">
-                            {s}
+                      <div className="flex flex-col gap-2 text-xs">
+                        <div className="flex items-center justify-between font-bold text-[#231F1D]">
+                          <span className="flex items-center gap-1.5">
+                            <Zap className="w-3.5 h-3.5 text-[#C85A32]" /> Aether Cloud Tech — Senior AI Engineer
                           </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="col-span-8 flex flex-col justify-between gap-2 p-1">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[11px] font-extrabold text-[#231F1D]">Senior AI Systems Engineer</span>
-                        <span className="text-[9px] text-[#786F68]">Aether Cloud Tech • 2023–Present</span>
-                        <p className="text-[10px] text-gray-600 leading-tight">
-                          Led core retrieval pipelines for 150k active users with sub-200ms latency.
+                          <span className="text-[10px] text-gray-500 font-mono">2023 – Present</span>
+                        </div>
+                        <p className="text-[11px] text-[#786F68] leading-relaxed bg-[#FAF6F0] p-2.5 rounded-xl border border-[#EAE3D5]">
+                          "Architected scalable PgVector RAG query pipeline handling 150k daily active requests at 180ms p95 latency."
                         </p>
                       </div>
-                      <span className="text-[9px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 self-start">
-                        94% ATS Compliance
-                      </span>
-                    </div>
-                  </div>
-                )}
 
-                {/* 5. Living Agent Mode (Character Streaming Typing) */}
-                {heroTemplateMode === 'agent' && (
-                  <div className="flex flex-col gap-3.5 animate-in fade-in duration-300">
-                    <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                      {sampleHeroPrompts.map((p, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => { setHeroPromptIdx(idx); setTypedIndex(0); }}
-                          className={`px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer border ${
-                            heroPromptIdx === idx
-                              ? 'bg-[#C85A32] text-white border-[#C85A32] shadow-xs'
-                              : 'bg-white text-[#786F68] border-[#EAE3D5] hover:bg-[#FDF4F0] hover:text-[#C85A32]'
-                          }`}
-                        >
-                          "{p.shortLabel}"
-                        </button>
-                      ))}
-                    </div>
+                      <div className="flex items-center justify-between pt-2 border-t border-[#EAE3D5] text-[10px]">
+                        <div className="flex items-center gap-1.5 text-emerald-700 font-bold">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Workday & Greenhouse Formatted
+                        </div>
+                        <span className="text-[#C85A32] font-bold">96% ATS Compatibility</span>
+                      </div>
+                    </motion.div>
+                  )}
 
-                    <div className="bg-[#FAF6F0] p-3 rounded-xl text-xs text-[#231F1D] font-bold border border-[#EAE3D5] flex items-center justify-between">
-                      <span>Recruiter: "{sampleHeroPrompts[heroPromptIdx].question}"</span>
-                      <span className="text-[10px] text-zinc-400 font-mono">Live Stream</span>
-                    </div>
-
-                    <div className="bg-gradient-to-r from-[#FDF4F0] via-white to-[#FDF4F0] p-3.5 rounded-xl text-xs text-[#231F1D] border border-[#F6DCD1] flex flex-col gap-2 shadow-2xs">
-                      <div className="flex items-center justify-between">
-                        <span className="font-extrabold text-[#C85A32] flex items-center gap-1.5">
-                          <Bot className="w-3.5 h-3.5 text-[#C85A32]" /> Candidate RAG Agent Output
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                  {/* 2. Minimalist Tech Morphing View (Dark Developer Mode) */}
+                  {heroTemplateMode === 'minimalist_tech' && (
+                    <motion.div
+                      key="minimalist_tech"
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                      transition={{ duration: 0.25, ease: 'easeOut' }}
+                      className="bg-[#18181B] text-zinc-200 border border-zinc-800 rounded-2xl p-5 shadow-inner flex flex-col gap-3 font-mono text-xs"
+                    >
+                      <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+                        <span className="text-emerald-400 font-bold flex items-center gap-1.5 text-[11px]">
+                          <Terminal className="w-3.5 h-3.5" /> // JOHN_SNOW_SYSTEMS.ts
                         </span>
-                        <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                          100% Grounded
+                        <span className="text-[9px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded border border-zinc-700">
+                          DEV_LAYOUT
                         </span>
                       </div>
 
-                      <div className="text-xs text-[#231F1D] font-medium leading-relaxed font-sans min-h-[42px]">
-                        "{sampleHeroPrompts[heroPromptIdx].answer.slice(0, typedIndex)}"
-                        <span className="inline-block w-1.5 h-3.5 bg-[#C85A32] ml-0.5 animate-pulse align-middle" />
+                      <div className="bg-black/50 p-3 rounded-xl border border-zinc-800/80 text-[11px] leading-relaxed flex flex-col gap-1 text-zinc-300">
+                        <span className="text-purple-400">const <span className="text-yellow-300">experience</span> = &#123;</span>
+                        <span className="pl-3 text-zinc-400">role: <span className="text-emerald-300">"Senior AI Engineer"</span>,</span>
+                        <span className="pl-3 text-zinc-400">metric: <span className="text-emerald-300">"45% latency cut (180ms p95) at 150k DAU"</span>,</span>
+                        <span className="pl-3 text-zinc-400">tech: [<span className="text-orange-300">"Next.js 16"</span>, <span className="text-orange-300">"PgVector"</span>, <span className="text-orange-300">"Claude 3.5"</span>]</span>
+                        <span className="text-purple-400">&#125;;</span>
                       </div>
 
-                      <div className="pt-1.5 border-t border-[#F6DCD1] flex items-center justify-between text-[10px] text-[#C85A32] font-bold">
-                        <span className="flex items-center gap-1 text-emerald-700">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> {sampleHeroPrompts[heroPromptIdx].citation}
+                      <div className="flex items-center justify-between pt-1 text-[10px] text-zinc-500">
+                        <span className="text-emerald-400 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> GitHub Commits Verified
                         </span>
-                        <span className="text-[9px] font-mono text-zinc-400">RAG: 99.8%</span>
+                        <span className="text-zinc-400 font-bold">95% Technical ATS</span>
                       </div>
-                    </div>
-                  </div>
-                )}
+                    </motion.div>
+                  )}
+
+                  {/* 3. Classic ATS Standard Morphing View */}
+                  {heroTemplateMode === 'classic_ats' && (
+                    <motion.div
+                      key="classic_ats"
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                      transition={{ duration: 0.25, ease: 'easeOut' }}
+                      className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs flex flex-col gap-3 font-serif"
+                    >
+                      <div className="text-center border-b border-gray-200 pb-2.5 flex flex-col">
+                        <span className="text-base font-black text-gray-900 tracking-wider">JOHN SNOW</span>
+                        <span className="text-[10px] text-gray-600 font-sans">San Francisco, CA • john.snow@demo.com • (555) 234-5678</span>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5 text-xs text-gray-800 font-sans">
+                        <div className="flex justify-between font-bold border-b border-gray-100 pb-0.5">
+                          <span className="text-gray-900">EXPERIENCE: Aether Cloud Tech</span>
+                          <span className="text-[10px] text-gray-500 font-mono">2023 – Present</span>
+                        </div>
+                        <ul className="list-disc list-inside text-[11px] text-gray-600 space-y-1 pl-1">
+                          <li>Architected scalable PgVector RAG query pipeline handling 150k daily requests at 180ms p95 latency.</li>
+                          <li>Reduced model hallucination below 0.4% with custom evaluation suite.</li>
+                        </ul>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-[10px] font-sans">
+                        <span className="text-emerald-700 font-bold">✔ Fortune 500 ATS Standard (Taleo, Workday)</span>
+                        <span className="font-extrabold text-gray-900">98% Extractable</span>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* 4. Editorial Two-Column Morphing View */}
+                  {heroTemplateMode === 'editorial_two_col' && (
+                    <motion.div
+                      key="editorial_two_col"
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                      transition={{ duration: 0.25, ease: 'easeOut' }}
+                      className="bg-white border border-[#EAE3D5] rounded-2xl p-4 shadow-xs grid grid-cols-12 gap-3 text-xs"
+                    >
+                      <div className="col-span-4 bg-[#FAF6F0] p-3 rounded-xl border border-[#EAE3D5] flex flex-col gap-2">
+                        <span className="text-[11px] font-black text-[#231F1D]">John Snow</span>
+                        <span className="text-[9px] text-[#C85A32] font-bold uppercase">Skills & Education</span>
+                        <div className="flex flex-wrap gap-1">
+                          {['TypeScript', 'PgVector', 'Next.js', 'Python'].map((s) => (
+                            <span key={s} className="px-1.5 py-0.5 text-[8px] bg-white border border-[#EAE3D5] rounded font-bold">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="col-span-8 flex flex-col justify-between gap-2 p-1">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[11px] font-extrabold text-[#231F1D]">Senior AI Systems Engineer</span>
+                          <span className="text-[9px] text-[#786F68]">Aether Cloud Tech • 2023–Present</span>
+                          <p className="text-[10px] text-gray-600 leading-tight">
+                            Led core retrieval pipelines for 150k active users with sub-200ms latency.
+                          </p>
+                        </div>
+                        <span className="text-[9px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 self-start">
+                          94% ATS Compliance
+                        </span>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* 5. Living Agent Mode (Character Streaming Typing) */}
+                  {heroTemplateMode === 'agent' && (
+                    <motion.div
+                      key="agent"
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                      transition={{ duration: 0.25, ease: 'easeOut' }}
+                      className="flex flex-col gap-3.5"
+                    >
+                      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                        {sampleHeroPrompts.map((p, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => { setHeroPromptIdx(idx); setTypedIndex(0); }}
+                            className={`px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer border ${
+                              heroPromptIdx === idx
+                                ? 'bg-[#C85A32] text-white border-[#C85A32] shadow-xs'
+                                : 'bg-white text-[#786F68] border-[#EAE3D5] hover:bg-[#FDF4F0] hover:text-[#C85A32]'
+                            }`}
+                          >
+                            "{p.shortLabel}"
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="bg-[#FAF6F0] p-3 rounded-xl text-xs text-[#231F1D] font-bold border border-[#EAE3D5] flex items-center justify-between">
+                        <span>Recruiter: "{sampleHeroPrompts[heroPromptIdx].question}"</span>
+                        <span className="text-[10px] text-zinc-400 font-mono">Live Stream</span>
+                      </div>
+
+                      <div className="bg-gradient-to-r from-[#FDF4F0] via-white to-[#FDF4F0] p-3.5 rounded-xl text-xs text-[#231F1D] border border-[#F6DCD1] flex flex-col gap-2 shadow-2xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-extrabold text-[#C85A32] flex items-center gap-1.5">
+                            <Bot className="w-3.5 h-3.5 text-[#C85A32]" /> Candidate RAG Agent Output
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                          </span>
+                          <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                            100% Grounded
+                          </span>
+                        </div>
+
+                        <div className="text-xs text-[#231F1D] font-medium leading-relaxed font-sans min-h-[42px]">
+                          "{sampleHeroPrompts[heroPromptIdx].answer.slice(0, typedIndex)}"
+                          <span className="inline-block w-1.5 h-3.5 bg-[#C85A32] ml-0.5 animate-pulse align-middle" />
+                        </div>
+
+                        <div className="pt-1.5 border-t border-[#F6DCD1] flex items-center justify-between text-[10px] text-[#C85A32] font-bold">
+                          <span className="flex items-center gap-1 text-emerald-700">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" /> {sampleHeroPrompts[heroPromptIdx].citation}
+                          </span>
+                          <span className="text-[9px] font-mono text-zinc-400">RAG: 99.8%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Bottom Quick-Action Bar */}
