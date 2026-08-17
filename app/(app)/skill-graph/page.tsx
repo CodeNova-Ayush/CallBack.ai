@@ -59,7 +59,7 @@ export default function SkillGraphPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Badge variant="indigo" size="sm">Persistent Candidate Entity</Badge>
-            <span className="text-xs text-gray-500">Ayush Mishra</span>
+            <span className="text-xs text-gray-500 font-medium">Alex Rivera</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Persistent Skill & Evidence Graph</h1>
         </div>
