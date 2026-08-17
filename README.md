@@ -11,57 +11,74 @@
 
 ---
 
-## 📑 Table of Contents
-- [🌟 Visual Product Walkthrough & Deep Feature Breakdown](#-visual-product-walkthrough--deep-feature-breakdown)
-  - [1. Production Landing Page & 40+ ATS Templates Showcase](#1-production-landing-page--40-ats-templates-showcase)
-  - [2. Candidate Workspace Dashboard](#2-candidate-workspace-dashboard)
-  - [3. 3-Zone Interactive Resume Builder & A4 Vector Preview](#3-3-zone-interactive-resume-builder--a4-vector-preview)
-  - [4. Living Candidate RAG Agent](#4-living-candidate-rag-agent)
-  - [5. Deep ATS Analyzer & Real-Time Audit](#5-deep-ats-analyzer--real-time-audit)
-  - [6. Job Description Matcher & Keyword Gap Analysis](#6-job-description-matcher--keyword-gap-analysis)
-  - [7. Recruiter Surface & Evaluation Companion](#7-recruiter-surface--evaluation-companion)
-  - [8. Claim Verification & Trust Score Engine](#8-claim-verification--trust-score-engine)
-  - [9. Auto-Tailor Opportunities & Job Fit Tracker](#9-auto-tailor-opportunities--job-fit-tracker)
-  - [10. Persistent Verified Skill Graph](#10-persistent-verified-skill-graph)
-  - [11. Voice-Native Career Intake Engine](#11-voice-native-career-intake-engine)
-  - [12. Binary Document Parser & Dropzone](#12-binary-document-parser--dropzone)
-- [🏛️ Codebase Architecture & Directory Structure](#️-codebase-architecture--directory-structure)
-- [🎨 40+ Production ATS Template Engine](#-40-production-ats-template-engine)
-- [🤖 Living Candidate RAG Agent Engine](#-living-candidate-rag-agent-engine)
-- [📄 Binary Document Parsing Engine (PDF/DOCX)](#-binary-document-parsing-engine-pdfdocx)
-- [🛠️ Full Backend REST API Specification](#️-full-backend-rest-api-specification)
-- [💻 Tech Stack & Infrastructure](#-tech-stack--infrastructure)
-- [🚀 Local Development Setup](#-local-development-setup)
-- [🚢 Deploying to Vercel](#-deploying-to-vercel)
+## 🛑 Problem Statement: The Fundamental Breakdown of the Modern Hiring Loop
+
+For the past three decades, the global hiring economy has relied on a fundamentally broken artifact: the **static, one-dimensional PDF resume**. In today's hyper-competitive tech landscape, this paradigm creates severe friction for both top-tier candidates and hiring teams:
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                             THE MODERN RESUME CRISIS                             │
+├────────────────────────────────────────┬─────────────────────────────────────────┤
+│           FOR JOB SEEKERS              │             FOR RECRUITERS              │
+├────────────────────────────────────────┼─────────────────────────────────────────┤
+│ • 75%+ Automated ATS Rejections due to │ • 6-Second Average Scan Time causes top │
+│   unparsed columns, tables, or icons.  │   engineering talent to be overlooked.  │
+│ • Zero Personalization for target JDs. │ • Resume Inflation & Unverified Claims  │
+│ • Static text cannot convey depth or   │   require tedious background screening. │
+│   answer complex technical questions.  │ • High Volume of generic applications.  │
+└────────────────────────────────────────┴─────────────────────────────────────────┘
+```
+
+1. **The 75% ATS Black Hole**: Over 75% of qualified engineering resumes are discarded before a human ever sees them due to formatting parsing errors, non-standard column layouts, missing semantic keywords, or weak action-verb density.
+2. **The 6-Second Recruiter Attention Asymmetry**: Hiring managers spend an average of 6 seconds reviewing a PDF. In that brief window, high-impact architectural achievements, distributed systems scaling triumphs, and technical leadership nuance are routinely lost.
+3. **The Unverified Claims & Trust Deficit**: Hiring teams face unprecedented resume inflation. Every resume claims 10x scaling or senior architectural leadership, leaving recruiters with zero immediate means to separate genuine expertise from exaggerated buzzwords.
+4. **The Static Document Bottleneck**: A traditional PDF cannot answer follow-up inquiries. A recruiter interested in a candidate's specific PostgreSQL sharding strategy or Kubernetes cluster telemetry cannot interrogate a PDF — they must coordinate multiple interview rounds just to determine basic technical alignment.
 
 ---
 
-## 🌟 Visual Product Walkthrough & Deep Feature Breakdown
+## 💡 The Callback AI Solution: The Living Candidate Agent Paradigm
+
+**Callback AI** fundamentally re-engineers the hiring workflow by replacing the passive, static document with an **active, verified, and interactive intelligence layer**:
+
+- **Living Candidate RAG Agent**: Every candidate receives an autonomous conversational agent trained exclusively on their verified career artifacts. Recruiters can interrogate the candidate's engineering history 24/7 with zero hallucination and strict citation grounding.
+- **Dual-Engine Formatting (Human & Robot ATS)**: 40+ pixel-perfect, single-page A4 vector templates engineered to achieve 99% parser compatibility across Workday, Greenhouse, Lever, and Taleo, while delivering bespoke typography for human decision-makers.
+- **Proof-of-Work Verification Engine**: Experience claims and technical projects are automatically audited against public repositories (such as GitHub) and timeline consistency checks to generate a transparent **Trust Score (96–99%)**.
+- **Closed-Loop Career Intelligence**: From voice-native intake and binary PDF extraction to semantic JD matching and auto-tailoring, Callback AI powers the entire lifecycle of career discovery.
+
+---
+
+## 🌟 Visual Product Walkthrough & In-Depth Feature Breakdown
 
 ### 1. Production Landing Page & 40+ ATS Templates Showcase
 ![1. Production Landing Page](public/screenshots/01-landing-page.png)
-- **High-Converting Hero Section**: Dynamic showcase featuring verified candidate stats, live ATS score telemetry (98% ATS Grounding), and 1-click interactive demo access.
-- **Visual Template Gallery**: Live interactive thumbnails across Executive, Tech, Startup, Editorial, and High-Density layout categories.
+
+- **High-Converting Hero Section**: Dynamic candidate showcase featuring verified engineering metrics, live ATS score telemetry (98% ATS Grounding), and 1-click interactive demo access.
+- **Interactive Template Gallery**: Explore live thumbnails across Executive, Tech, Startup, Editorial, and High-Density layout categories, demonstrating verified parser compatibility.
+- **Architectural Value Highlights**: Clear breakdown of the 3-zone builder, Living Agent system, and automated JD keyword matching.
 
 ---
 
 ### 2. Candidate Workspace Dashboard
 ![2. Candidate Workspace Dashboard](public/screenshots/02-candidate-dashboard.png)
-- **Centralized Candidate Hub**: Manage multiple active resumes, track real-time ATS compliance scores, view claim verification trust scores, and initiate AI audits.
+
+- **Centralized Candidate Hub**: Manage multiple active resumes, monitor real-time ATS compliance scores, view claim verification trust scores, and initiate AI audits.
 - **Quick Action Command Center**: Direct 1-click navigation into the 3-Zone Builder, ATS Analyzer, Job Description Matcher, and Living Candidate Agent.
+- **Telemetry Overview**: Real-time stats on recruiter views, agent conversations, and application health.
 
 ---
 
 ### 3. 3-Zone Interactive Resume Builder & A4 Vector Preview
 ![3. 3-Zone Interactive Resume Builder](public/screenshots/03-resume-builder.png)
-- **Zone 1 (Left Navigation)**: Reorderable resume sections with item counters and drag-and-drop handles.
-- **Zone 2 (Center Form)**: Active form editor with inline AI action-verb enhancers and dynamic input validation.
+
+- **Zone 1 (Left Navigation)**: Reorderable resume sections with item counters and drag-and-drop handles for Personal Info, Experience, Projects, Education, and Skills.
+- **Zone 2 (Center Form)**: Active form editor with inline AI action-verb enhancers, dynamic date pickers, and live bullet optimization.
 - **Zone 3 (Right Live Canvas)**: Real-time vector preview scaled to standard ISO A4 dimensions (`210mm × 297mm`) with a sticky 1-click template switcher ribbon bar.
 
 ---
 
 ### 4. Living Candidate RAG Agent
 ![4. Living Candidate RAG Agent](public/screenshots/05-rag-candidate-agent.png)
+
 - **Interactive Conversational AI**: Transforms flat PDF resumes into living agents that answer hiring managers' inquiries with verified accuracy.
 - **Source-Grounded Citations**: Every answer references exact experience bullet points with 98% ATS Grounding and 99% Trust Score badges.
 - **Local File Dropzone**: Drag and drop any PDF/DOCX resume to instantly initialize a living agent trained on that candidate.
@@ -70,34 +87,42 @@
 
 ### 5. Deep ATS Analyzer & Real-Time Audit
 ![5. Deep ATS Analyzer](public/screenshots/04-ats-analyzer.png)
+
 - **Quantifiable Impact Scoring**: Audits action verb power ratings, metrics density, and structural readability against top enterprise Applicant Tracking Systems.
 - **Inline AI Bullet Fixer**: 1-click enhancement of weak bullet points into high-impact, metric-driven statements.
+- **Categorized Remediation**: Actionable suggestions across formatting, keyword density, and technical depth.
 
 ---
 
 ### 6. Job Description Matcher & Keyword Gap Analysis
 ![6. Job Description Matcher](public/screenshots/06-jd-match.png)
+
 - **Semantic Job Description Matching**: Paste target job descriptions to compute compatibility scores (0–100%).
 - **Keyword Gap Discovery**: Pinpoints critical missing keywords and proposes 1-click resume tailoring optimizations.
+- **Relevance Breakdown**: Compares candidate technical stack directly against the hiring team's required competencies.
 
 ---
 
 ### 7. Recruiter Surface & Evaluation Companion
 ![7. Recruiter Evaluation Companion](public/screenshots/07-recruiter-dashboard.png)
-- **Automated Screening Hub**: Review candidate fit scores, verified claims, and interview transcripts.
-- **Instant Q&A Inquiries**: Ask the AI agent deep technical questions to verify architecture and engineering credentials.
+
+- **Automated Screening Hub**: Review candidate fit scores, verified claims, and interview transcripts in a unified portal.
+- **Instant Q&A Inquiries**: Ask the AI agent deep technical questions to verify architecture and engineering credentials before scheduling initial calls.
 
 ---
 
 ### 8. Claim Verification & Trust Score Engine
 ![8. Claim Verification](public/screenshots/08-claim-verification.png)
+
 - **Public Artifact Auditing**: Automatically cross-references experience claims, GitHub repositories, and live links.
 - **Timeline Sanity Checks**: Validates employment overlap and assigns a transparent Trust Score (96–99%).
+- **Confidence Badges**: Highlights verified metrics to give hiring teams confidence in candidate claims.
 
 ---
 
 ### 9. Auto-Tailor Opportunities & Job Fit Tracker
 ![9. Auto-Tailor Opportunities](public/screenshots/09-opportunities-tailor.png)
+
 - **Live Job Opportunities Feed**: Automatically matches active candidate resumes against open software engineering and AI positions.
 - **Instant Resume Tailoring**: Generates a tailored application snapshot customized to the target employer's specific tech stack.
 
@@ -105,6 +130,7 @@
 
 ### 10. Persistent Verified Skill Graph
 ![10. Persistent Verified Skill Graph](public/screenshots/10-skill-graph.png)
+
 - **Dynamic Proficiency Signals**: Visualizes technical competencies with evidence-backed confidence bars.
 - **Multi-Category Stacks**: Organizes languages, frontend, backend, AI/ML, and cloud infrastructure skills into an interactive matrix.
 
@@ -112,6 +138,7 @@
 
 ### 11. Voice-Native Career Intake Engine
 ![11. Voice Intake](public/screenshots/11-voice-intake.png)
+
 - **Speech-to-Text Ingestion**: Speak naturally about your career accomplishments, past projects, and responsibilities.
 - **AI Bullet Generation**: Converts spoken audio streams into structured, impact-driven resume bullet points automatically.
 
@@ -119,14 +146,13 @@
 
 ### 12. Binary Document Parser & Dropzone
 ![12. Binary Document Dropzone & Import](public/screenshots/12-import-old-resume.png)
+
 - **Binary Stream Decoding**: Direct binary extraction from uploaded PDF, DOCX, and text files using `pdf2json` and `mammoth`.
 - **Instant ATS Scoring**: Analyzes keyword density, action verb strength, and formatting compliance in under 3 seconds.
 
 ---
 
 ## 🏛️ Codebase Architecture & Directory Structure
-
-The repository is structured into modular layers for clarity and scalability:
 
 ```text
 CallBack.ai/
