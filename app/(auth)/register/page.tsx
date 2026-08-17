@@ -40,7 +40,7 @@ export default function RegisterPage() {
         <form onSubmit={handleRegister} className="flex flex-col gap-4">
           <Input
             label="Full Name"
-            placeholder="e.g. Ayush Mishra"
+            placeholder="e.g. John Snow"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
