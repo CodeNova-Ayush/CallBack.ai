@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth, useUser } from '@clerk/nextjs';
+import { useAppAuth as useAuth, useAppUser as useUser } from '@/components/auth/AuthProvider';
 import {
   LayoutDashboard,
   FileText,
@@ -18,8 +18,8 @@ import {
   LogOut,
   UserCheck,
   User,
-  Zap,
   Upload,
+  FileUp,
 } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { clsx } from 'clsx';
@@ -107,6 +107,7 @@ export const Sidebar: React.FC = () => {
       groupName: 'Agentic Layer',
       items: [
         { name: 'Living Resume Agent', href: `/agent/${activeResumeId}`, icon: Bot, badge: 'Flagship' },
+        { name: 'Import Resume to Talk', href: '/import-resume?mode=agent', icon: FileUp, badge: 'Talk AI' },
         { name: 'Trust Score & Claims', href: `/trust-score/${activeResumeId}`, icon: ShieldCheck },
         { name: 'Recruiter Companion', href: '/recruiter-dashboard', icon: UserCheck },
         { name: 'Opportunities & Apply', href: '/opportunities', icon: Briefcase },
