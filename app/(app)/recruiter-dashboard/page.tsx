@@ -26,13 +26,13 @@ export default function RecruiterDashboardPage() {
   const candidates = [
     {
       id: 'demo-resume-alex-1',
-      name: 'Ayush Mishra',
-      role: 'Senior Full-Stack AI Engineer',
-      matchScore: 94,
-      trustScore: 96,
-      topSkills: ['Next.js 14', 'PgVector', 'Claude 3.5 Sonnet', 'TypeScript', 'Rust'],
-      verifiedClaimsCount: 4,
-      experienceYears: '4+ Years',
+      name: 'Alex Rivera',
+      role: 'Staff AI Engineer | Distributed Systems & Multi-Agent',
+      matchScore: 98,
+      trustScore: 98,
+      topSkills: ['Next.js 16', 'PgVector', 'LLM Multi-Agent', 'TypeScript', 'Rust', 'AWS'],
+      verifiedClaimsCount: 5,
+      experienceYears: '6+ Years',
       location: 'San Francisco, CA',
     },
     {
@@ -168,7 +168,9 @@ export default function RecruiterDashboardPage() {
             <div className="flex items-center justify-between border-b border-gray-200 pb-4">
               <div className="flex items-center gap-2">
                 <Bot className="w-5 h-5 text-[#4F46E5]" />
-                <h3 className="font-bold text-base text-gray-900">Candidate Agent Chat — Ayush Mishra</h3>
+                <h3 className="font-bold text-base text-gray-900">
+                  Candidate Agent Chat — {candidates.find(c => c.id === activeCandidateId)?.name || 'Candidate'}
+                </h3>
               </div>
               <button onClick={() => setActiveCandidateId(null)} className="p-1 hover:bg-gray-100 rounded">
                 <X className="w-5 h-5 text-gray-500" />
