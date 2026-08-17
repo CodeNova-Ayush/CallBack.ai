@@ -2,7 +2,7 @@
 
 > **Callback AI** is an enterprise-grade AI resume engine and candidate intelligence platform. It transforms static traditional PDF resumes into interactive, living AI agents that recruiters and hiring managers can converse with directly. The platform features 40+ ATS-tested resume templates, real-time ATS optimization, job description keyword matching, binary document parsing (PDF/DOCX), claim verification, persistent skill graphs, and voice-native career intake.
 
-[![Next.js 16](https://img.shields.io/badge/Next.js-16.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16.2.11-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript 5](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4.0-38bdf8?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![Prisma ORM 5.22](https://img.shields.io/badge/Prisma_ORM-5.22-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
@@ -12,7 +12,17 @@
 ---
 
 ## 📑 Table of Contents
-- [🌟 Key Architectural Modules](#-key-architectural-modules)
+- [🌟 Visual Product Showcase & Core Features](#-visual-product-showcase--core-features)
+  - [1. Production Landing Page & Template Showcase](#1-production-landing-page--template-showcase)
+  - [2. Candidate Workspace Dashboard](#2-candidate-workspace-dashboard)
+  - [3. Living Candidate RAG Agent](#3-living-candidate-rag-agent)
+  - [4. Recruiter Evaluation Companion](#4-recruiter-evaluation-companion)
+  - [5. Claim Verification & Trust Score Engine](#5-claim-verification--trust-score-engine)
+  - [6. Persistent Skill Graph & Proficiency Signals](#6-persistent-skill-graph--proficiency-signals)
+  - [7. Voice-Native Career Intake Engine](#7-voice-native-career-intake-engine)
+  - [8. Import Old Resume & Instant ATS Audit](#8-import-old-resume--instant-ats-audit)
+  - [9. Auto-Tailor Opportunities & Fit Scoring](#9-auto-tailor-opportunities--fit-scoring)
+  - [10. 3-Zone Interactive Resume Builder & A4 Vector Preview](#10-3-zone-interactive-resume-builder--a4-vector-preview)
 - [🏛️ Codebase Architecture & Directory Structure](#️-codebase-architecture--directory-structure)
 - [🎨 40+ Production ATS Template Engine](#-40-production-ats-template-engine)
 - [🤖 Living Candidate RAG Agent Engine](#-living-candidate-rag-agent-engine)
@@ -24,49 +34,86 @@
 
 ---
 
-## 🌟 Key Architectural Modules
+## 🌟 Visual Product Showcase & Core Features
 
-### 1. 3-Zone Interactive Resume Builder & A4 Vector Preview
-A high-performance resume editor built with a 3-zone split workspace:
+### 1. Production Landing Page & Template Showcase
+![1. Landing Page Showcase](public/screenshots/01-landing-page.png)
+- **High-Converting Hero**: Displays real-time candidate metrics, 40+ ATS-tested templates, and instant interactive product trials.
+- **Interactive Template Gallery**: Explore live thumbnails across Executive, Tech, Startup, Editorial, and High-Density layout categories.
+
+---
+
+### 2. Candidate Workspace Dashboard
+![2. Candidate Dashboard](public/screenshots/02-candidate-dashboard.png)
+- **Centralized Candidate Hub**: Manage multiple resumes, monitor active ATS health scores, and track verification trust metrics.
+- **Quick Action Bar**: 1-click access to the Resume Builder, ATS Analyzer, Job Description Matcher, and Living Agent.
+
+---
+
+### 3. Living Candidate RAG Agent
+![3. Living Candidate RAG Agent](public/screenshots/05-rag-candidate-agent.png)
+- **Interactive Conversational AI**: Transforms flat resumes into living agents that answer hiring managers' questions with verified accuracy.
+- **Source-Grounded Citations**: Every answer references exact experience bullet points with 98% ATS Grounding and 99% Trust Score badges.
+- **Local File Dropzone**: Drag and drop any PDF/DOCX resume to instantly initialize a living agent trained on that candidate.
+
+---
+
+### 4. Recruiter Evaluation Companion
+![4. Recruiter Dashboard](public/screenshots/06-recruiter-dashboard.png)
+- **Automated Screening Hub**: Review candidate fit scores, verified claims, and interview transcripts.
+- **Instant Q&A Inquiries**: Ask the AI agent deep technical questions to verify architecture and engineering credentials.
+
+---
+
+### 5. Claim Verification & Trust Score Engine
+![5. Claim Verification](public/screenshots/07-claim-verification.png)
+- **Public Artifact Auditing**: Automatically cross-references experience claims, GitHub repositories, and live links.
+- **Timeline Sanity Checks**: Validates employment overlap and assigns a transparent Trust Score (96–99%).
+
+---
+
+### 6. Persistent Skill Graph & Proficiency Signals
+![6. Persistent Skill Graph](public/screenshots/08-skill-graph-page.png)
+- **Dynamic Proficiency Signals**: Visualizes technical competencies with evidence-backed confidence bars.
+- **Multi-Category Stacks**: Organizes languages, frontend, backend, AI/ML, and cloud infrastructure skills into an interactive matrix.
+
+---
+
+### 7. Voice-Native Career Intake Engine
+![7. Voice Intake](public/screenshots/08-voice-intake.png)
+- **Speech-to-Text Ingestion**: Speak naturally about your career accomplishments, past projects, and responsibilities.
+- **AI Bullet Generation**: Converts spoken audio streams into structured, impact-driven resume bullet points automatically.
+
+---
+
+### 8. Import Old Resume & Instant ATS Audit
+![8. Import Old Resume](public/screenshots/09-import-old-resume.png)
+- **Binary Stream Decoding**: Direct binary extraction from uploaded PDF, DOCX, and text files using `pdf2json` and `mammoth`.
+- **Instant ATS Scoring**: Analyzes keyword density, action verb strength, and formatting compliance in under 3 seconds.
+
+---
+
+### 9. Auto-Tailor Opportunities & Fit Scoring
+![9. Opportunities & Auto-Tailor](public/screenshots/10-opportunities-tailor.png)
+- **Semantic Job Description Matching**: Paste target job descriptions to compute compatibility scores (0–100%).
+- **Keyword Gap Discovery**: Pinpoints critical missing keywords and proposes 1-click resume tailoring optimizations.
+
+---
+
+### 10. 3-Zone Interactive Resume Builder & A4 Vector Preview
 - **Zone 1 (Left Navigation)**: Reorderable resume sections with item counters and drag-and-drop handles.
 - **Zone 2 (Center Form)**: Active form editor with inline AI action-verb enhancers and dynamic input validation.
 - **Zone 3 (Right Live Canvas)**: Real-time vector preview scaled to standard ISO A4 dimensions (`210mm × 297mm`) with 1-click template switching.
-
-### 2. Living Candidate Agent (Flagship RAG System)
-Transforms flat resumes into interactive conversational AI agents:
-- **Grounded Source Retrieval**: Answers recruiter questions with strict citations referencing actual experience bullets.
-- **Real-Time Candidate Switcher**: Seamlessly switch between active candidate resumes.
-- **Local File Dropzone**: Drag and drop any PDF/DOCX resume to instantly talk with an agent trained on that candidate.
-
-### 3. Deep ATS Analyzer & Real-Time Scoring
-Audits resumes against top enterprise Applicant Tracking Systems:
-- Quantifiable impact checks (metrics, percentages, revenue figures).
-- Action verb power ratings and readability scoring.
-- Keyword density suggestions and 1-click bullet point enhancements.
-
-### 4. Job Description Matcher & Tailoring Engine
-Matches any candidate resume against job postings:
-- Generates a granular match score (0–100%).
-- Highlights matched skills vs. critical missing keywords.
-- Proposes targeted tailoring recommendations to maximize interview callbacks.
-
-### 5. Claim Verification & Trust Score Engine
-Verifies claims, project links, and timeline sanity:
-- Assigns a Trust Score (96–99%) based on verifiable public artifacts.
-- Flags potential timeline discrepancies or unverified claims.
-
-### 6. Voice-Native Career Intake
-Allows candidates to speak naturally about their past projects and responsibilities. The AI transcribes spoken audio into structured, impact-driven resume bullet points.
 
 ---
 
 ## 🏛️ Codebase Architecture & Directory Structure
 
-The repository is organized into clean, modular layers for maximum maintainability:
+The repository is structured into modular layers for clarity and scalability:
 
 ```text
 CallBack.ai/
-├── app/                               # Next.js 16 App Router & Fullstack API Routes
+├── app/                               # Next.js 16 App Router & Serverless API Routes
 │   ├── (app)/                         # Protected Product Workspaces
 │   │   ├── agent/[resumeId]/          # Living Candidate Agent Workspace (2-Column)
 │   │   ├── analyzer/[resumeId]/       # Deep ATS Analyzer & Audit Dashboard
@@ -121,6 +168,7 @@ CallBack.ai/
 │   └── seed.ts                        # High-Caliber Mock Persona Seed Data
 │
 └── public/                            # Static Assets, Icons & Screenshots
+    └── screenshots/                   # High-Resolution UI Demos
 ```
 
 ---
@@ -141,7 +189,17 @@ All templates render standard vector output adhering to ISO A4 dimensions (`210m
 
 ## 🤖 Living Candidate RAG Agent Engine
 
-1. **Document Ingestion**: Extracts text chunks from resume sections and indexes them in the local database.
+```mermaid
+graph LR
+    A[Candidate PDF / Data] --> B[Binary Document Parser]
+    B --> C[Prisma Knowledge Chunks]
+    C --> D[RAG Agent Pipeline]
+    E[Recruiter Inquiry] --> D
+    D --> F[Gemini 2.5 Flash Engine]
+    F --> G[Source-Grounded Response with Citations]
+```
+
+1. **Document Ingestion**: Extracts text chunks from resume sections and indexes them in the database.
 2. **Contextual Retrieval**: On each recruiter prompt, the agent searches relevant experience and project bullets.
 3. **Strict Grounding**: Uses zero-temperature inference to guarantee answers reflect verified work history without hallucinations.
 
@@ -227,7 +285,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
    ```
 2. Import the repository into **[Vercel](https://vercel.com/)**.
 3. Set the Environment Variables in the Vercel Project Settings:
-   - `DATABASE_URL` (e.g. Postgres / Supabase / Neon or SQLite for demo)
+   - `DATABASE_URL` (e.g. Postgres / Supabase / Neon / SQLite)
    - `GEMINI_API_KEY`
    - `NEXT_PUBLIC_APP_URL`
 4. Deploy! Next.js will automatically build and deploy the production bundle.
