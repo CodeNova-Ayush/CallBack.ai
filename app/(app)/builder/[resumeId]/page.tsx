@@ -27,78 +27,123 @@ import { ResumeTemplateRenderer, TemplateId, ResumeData } from '@/components/bui
 
 const DEMO_DATA: ResumeData = {
   personalInfo: {
-    fullName: 'Ayush Mishra',
-    email: 'ayush.mishra@demo.com',
-    phone: '+1 (555) 234-5678',
+    fullName: 'ALEX RIVERA',
+    email: 'alex.rivera@neuralflow.ai',
+    phone: '+1 (555) 439-8821',
     location: 'San Francisco, CA',
-    linkedin: 'linkedin.com/in/ayushmishradev',
-    github: 'github.com/ayushmishra-ai',
+    linkedin: 'linkedin.com/in/alexrivera-ai',
+    github: 'github.com/alexrivera',
     summary:
-      'Passionate Full-Stack AI Engineer with 4+ years of experience architecting high-throughput distributed systems, vector search pipelines, and intuitive React web applications. Proven track record reducing API latency by 45% and driving 3M+ active user growth.',
+      'Staff Software Engineer and Systems Architect with 6+ years of experience engineering high-throughput distributed infrastructure, low-latency LLM inference pipelines, and enterprise-grade full-stack platforms. Founder of SynthBase (YC W24, acquired) and core contributor to open-source agent frameworks. Proven track record scaling microservices to 10M+ daily active requests with 99.99% uptime, cutting p99 query latencies by 60%, and orchestrating multi-region cloud deployments on AWS and GCP. Passionate about autonomous agents, vector indexing, and developer tooling.',
   },
   experiences: [
     {
       id: 'exp-1',
-      role: 'Senior Full-Stack AI Engineer',
-      company: 'Aether Cloud Tech',
+      role: 'Founding Staff AI Engineer',
+      company: 'NeuralFlow Systems (AI Agents & RAG Infra)',
       location: 'San Francisco, CA',
-      startDate: '2023-01',
+      startDate: 'Jun 2024',
       endDate: 'Present',
       bullets: [
-        'Architected scalable RAG query pipeline using Next.js 14, PgVector, and Claude 3.5 Sonnet, handling 150k daily active requests at 180ms p95 latency.',
-        'Engineered custom prompt evaluation framework that boosted grounding precision by 32% and cut model hallucination rate below 0.4%.',
-        'Mentored 5 junior developers and instituted automated CI/CD code quality checks, improving deployment velocity by 40%.',
+        'Architected asynchronous distributed task-queue engine handling 120k peak req/sec at sub-45ms p95 latency.',
+        'Engineered custom semantic cache & hybrid vector retrieval pipeline, reducing LLM API token spend by 48%.',
+        'Designed multi-tenant access control and end-to-end telemetry streaming across Kubernetes clusters.',
+        'Led technical strategy and mentored an engineering team of 8 full-stack and ML infrastructure developers.',
       ],
     },
     {
       id: 'exp-2',
-      role: 'Software Engineer',
-      company: 'Pulse Digital Analytics',
-      location: 'San Jose, CA',
-      startDate: '2021-06',
-      endDate: '2022-12',
+      role: 'Senior Full-Stack Engineer',
+      company: 'Stripe (Core Billing & Payment Routing)',
+      location: 'San Francisco, CA',
+      startDate: 'Jan 2022',
+      endDate: 'May 2024',
       bullets: [
-        'Built responsive React + TypeScript analytics portal used by 45k enterprise business managers.',
-        'Optimized PostgreSQL query index strategies, cutting complex aggregation runtimes from 4.2s to 210ms.',
+        'Led frontend and backend architecture for next-gen adaptive payment flow using React, TypeScript, and Go.',
+        'Optimized PostgreSQL shard indexing strategies, cutting complex ledger reconciliation runtimes from 8.4s to 320ms.',
+        'Instituted automated canary deployment workflows and integration testing suites, achieving zero-downtime releases.',
+      ],
+    },
+    {
+      id: 'exp-3',
+      role: 'Full Stack Engineering Intern',
+      company: 'Vercel (Developer Experience & Edge)',
+      location: 'Remote',
+      startDate: 'May 2021',
+      endDate: 'Dec 2021',
+      bullets: [
+        'Built Next.js edge runtime middleware extensions and analytics dashboard for enterprise team tiers.',
+        'Implemented incremental static regeneration (ISR) stress testing harnesses and automated regression monitors.',
+        'Collaborated directly with framework core team to optimize Cold Start latency by 35%.',
+      ],
+    },
+    {
+      id: 'exp-4',
+      role: 'Lead Architect & Hackathon Winner',
+      company: 'ApexAgent – Global AI Hackathon Champion',
+      location: 'San Francisco, CA',
+      startDate: 'Oct 2023',
+      endDate: 'Oct 2023',
+      bullets: [
+        'Spearheaded architecture of autonomous reasoning pipeline utilizing LangChain, Next.js 14, and PgVector.',
+        'Won 1st Place Grand Prize among 1,200+ international engineering teams.',
       ],
     },
   ],
   education: [
     {
       id: 'edu-1',
-      degree: 'B.S. in Computer Science',
+      degree: 'M.S. in Computer Science (AI & Systems)',
+      institution: 'Stanford University',
+      location: 'Stanford, CA',
+      startDate: '2020',
+      endDate: '2022',
+      gpa: '3.92 / 4.0',
+    },
+    {
+      id: 'edu-2',
+      degree: 'B.S. in Electrical Engineering & Computer Science (EECS)',
       institution: 'University of California, Berkeley',
       location: 'Berkeley, CA',
-      startDate: '2017-08',
-      endDate: '2021-05',
+      startDate: '2016',
+      endDate: '2020',
       gpa: '3.88 / 4.0',
     },
   ],
   projects: [
     {
       id: 'proj-1',
-      title: 'NeuroDraft — Agentic Document Copilot',
-      techStack: 'Next.js, Python FastAPI, PgVector, Anthropic API',
-      link: 'github.com/ayushmishra-ai/neurodraft',
+      title: 'SynthBase — Multi-Agent Developer Infrastructure',
+      techStack: 'Next.js 15, TypeScript, Python, PgVector, Claude 3.5 Sonnet',
+      link: 'github.com/alexrivera/synthbase',
       bullets: [
-        'Built multi-agent document analysis workspace featuring real-time collaborative editing and voice feedback.',
-        'Starred by 1.2k developers on GitHub; deployed live to 10k monthly active users.',
+        'Built autonomous agent evaluation workspace processing 500k monthly LLM runs with real-time telemetry.',
+        'Acquired by enterprise AI analytics group in 2025; starred by 8.5k developers on GitHub.',
       ],
     },
   ],
   skills: [
     'TypeScript',
+    'Python',
+    'Go',
+    'Rust',
+    'C++',
+    'JavaScript',
     'React',
     'Next.js',
-    'Python',
-    'Rust',
-    'PgVector',
+    'Node.js',
     'PostgreSQL',
-    'Tailwind CSS',
+    'PgVector',
+    'Redis',
     'AWS',
+    'GCP',
     'Docker',
-    'Prisma',
-    'Claude API',
+    'Kubernetes',
+    'Terraform',
+    'Git',
+    'LLM Orchestration',
+    'Multi-Agent Systems',
+    'RAG Pipelines',
   ],
 };
 
@@ -123,11 +168,11 @@ export default function BuilderPage(props: { params: Promise<{ resumeId: string 
   const resumeId = params.resumeId || 'demo-resume-alex-1';
   const isDemoResume = resumeId === 'demo-resume-alex-1';
 
-  // Start with empty data if not explicitly the Ayush Mishra demo resume
+  // Start with default data if demo resume
   const initialData = isDemoResume ? DEMO_DATA : EMPTY_DATA;
 
   const [activeSection, setActiveSection] = useState<string>('personal_info');
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>('modern_executive');
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>('classic_ats');
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [isEnhancing, setIsEnhancing] = useState<string | null>(null);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState<boolean>(false);
@@ -314,7 +359,6 @@ ${skills.join(', ')}
   };
 
   const handleExportPDF = () => {
-    handleDownloadLocalFile('html');
     window.print();
   };
 
@@ -327,14 +371,255 @@ ${skills.join(', ')}
   };
 
   const templatesGallery = [
-    { id: 'classic_ats', name: 'Helen Willis / Executive Serif', tag: 'RECOMMENDED', desc: 'Fortune 500 ATS standard single-column serif template' },
-    { id: 'navy_sidebar', name: 'Theo Ramos / Midnight Navy Sidebar', tag: 'RECOMMENDED', desc: 'Dark blue left sidebar for contacts & skills' },
-    { id: 'soft_green_pill', name: 'Alisha Hill / Soft Green Pill', tag: 'RECOMMENDED', desc: 'Modern soft green pill tags and clean layout' },
-    { id: 'modern_executive', name: 'Maria Dean / Terracotta Banner', tag: 'RECOMMENDED', desc: 'Left terracotta accent border with executive header' },
-    { id: 'right_sidebar', name: 'Ethan Cole / Dark Navy Right Column', tag: 'POPULAR', desc: 'Right navy sidebar column for skills & education' },
-    { id: 'navy_header', name: 'Maria Dean / Deep Navy Top Header', tag: 'POPULAR', desc: 'Deep navy blue top header banner' },
-    { id: 'minimalist_tech', name: 'David Miller / Minimal Tech', tag: 'CLEAN', desc: 'Compact monospace header for developers' },
-    { id: 'yellow_creative', name: 'Samantha Lewis / Creative Amber', tag: 'CREATIVE', desc: 'Soft amber profile circle badge & pill tags' },
+    // 1-6: Executive & Fortune 500
+    {
+      id: 'classic_ats',
+      name: 'Executive Two-Column Standard',
+      tag: 'FORTUNE 500',
+      ats: '99% ATS',
+      desc: 'Clean two-column split with tabular dates, categorized skills, and verified achievements grid.',
+      layout: 'two_column',
+    },
+    {
+      id: 'modern_executive',
+      name: 'Modern Executive Terracotta',
+      tag: 'YC FOUNDER',
+      ats: '98% ATS',
+      desc: 'Warm terracotta accent border, executive summary backdrop, and structured leadership cards.',
+      layout: 'terracotta_split',
+    },
+    {
+      id: 'navy_sidebar',
+      name: 'Midnight Slate Architecture',
+      tag: 'STAFF / PRINCIPAL',
+      ats: '98% ATS',
+      desc: 'Deep slate navy headers, high-contrast subheadings, and dense system engineering layout.',
+      layout: 'slate_two_column',
+    },
+    {
+      id: 'navy_header',
+      name: 'Horizon Deep Navy Horizon',
+      tag: 'ENTERPRISE LEAD',
+      ats: '97% ATS',
+      desc: 'Top navy header banner with dual-column grid body and prominent technical credentials.',
+      layout: 'top_banner',
+    },
+    {
+      id: 'fortune500_single',
+      name: 'Wall Street Single Column Standard',
+      tag: 'WALL STREET',
+      ats: '99% ATS',
+      desc: 'Classic centered serif header with horizontal rules and maximum corporate parser compatibility.',
+      layout: 'single_column',
+    },
+    {
+      id: 'boardroom_serif',
+      name: 'Boardroom Executive Serif',
+      tag: 'BOARD & ADVISOR',
+      ats: '98% ATS',
+      desc: 'Refined serif typography with right-aligned tabular numerals and leadership highlights.',
+      layout: 'single_column',
+    },
+
+    // 7-12: Tech & Systems Engineering
+    {
+      id: 'minimalist_tech',
+      name: 'Developer Monospace Terminal',
+      tag: 'TECH ARCHITECT',
+      ats: '97% ATS',
+      desc: 'Monospace terminal section tags, code syntax stack, and dense metrics formatting.',
+      layout: 'monospace',
+    },
+    {
+      id: 'soft_green_pill',
+      name: 'Emerald Systems Engineering',
+      tag: 'AI / CLOUD INFRA',
+      ats: '97% ATS',
+      desc: 'Nordic emerald headers, clean divider borders, and categorized domain competencies.',
+      layout: 'emerald_split',
+    },
+    {
+      id: 'cyber_terminal',
+      name: 'Cyber Matrix Console',
+      tag: 'SECURITY / DEV',
+      ats: '96% ATS',
+      desc: 'Deep dark slate console styling with bright emerald syntax highlights and terminal tags.',
+      layout: 'monospace',
+    },
+    {
+      id: 'cloud_architect',
+      name: 'AWS & Cloud Architect Standard',
+      tag: 'CLOUD / DEVOPS',
+      ats: '98% ATS',
+      desc: 'Sky blue accent geometry with structured infrastructure competencies and cloud metrics.',
+      layout: 'two_column',
+    },
+    {
+      id: 'rust_systems',
+      name: 'Rust & Low-Latency Core',
+      tag: 'SYSTEMS / RUST',
+      ats: '97% ATS',
+      desc: 'Copper orange accent borders with dense monospace code tags and performance metrics.',
+      layout: 'left_accent',
+    },
+    {
+      id: 'ai_researcher',
+      name: 'DeepMind & OpenAI Research Paper',
+      tag: 'AI / RESEARCH',
+      ats: '98% ATS',
+      desc: 'Scholarly preprint typography with abstract summary box and publication pedigree.',
+      layout: 'two_column',
+    },
+
+    // 13-18: YC Startups & High Growth
+    {
+      id: 'yellow_creative',
+      name: 'Amber Growth & Product Architect',
+      tag: 'PRODUCT / GROWTH',
+      ats: '96% ATS',
+      desc: 'Warm amber section dividers and structured dual-column matrix for product innovators.',
+      layout: 'amber_split',
+    },
+    {
+      id: 'yc_founder_pitch',
+      name: 'YC Founder Fast-Track',
+      tag: 'STARTUP FOUNDER',
+      ats: '98% ATS',
+      desc: 'Punchy orange accents, prominent fundraising and traction milestones, and high-signal metrics.',
+      layout: 'left_accent',
+    },
+    {
+      id: 'stealth_scale',
+      name: 'Silicon Valley Stealth Seed',
+      tag: 'EARLY STAGE',
+      ats: '97% ATS',
+      desc: 'Deep violet accent banners with clean domain badges and rapid shipping highlights.',
+      layout: 'two_column',
+    },
+    {
+      id: 'fintech_lead',
+      name: 'Stripe & Ramp Fintech Protocol',
+      tag: 'FINTECH',
+      ats: '98% ATS',
+      desc: 'Indigo top banner with tabular transaction metrics, ledger reconciliation, and high reliability.',
+      layout: 'top_banner',
+    },
+    {
+      id: 'crypto_web3',
+      name: 'Decentralized Protocol Engineer',
+      tag: 'CRYPTO / WEB3',
+      ats: '96% ATS',
+      desc: 'Electric indigo divider lines with smart contract security and consensus mechanisms.',
+      layout: 'two_column',
+    },
+    {
+      id: 'saas_operator',
+      name: 'B2B SaaS Growth & Revenue Lead',
+      tag: 'B2B SAAS',
+      ats: '97% ATS',
+      desc: 'Royal sapphire blue cards with ARR expansion, retention, and enterprise sales highlights.',
+      layout: 'two_column',
+    },
+
+    // 19-24: Editorial & Strategy
+    {
+      id: 'right_sidebar',
+      name: 'Burgundy Leadership Standard',
+      tag: 'VP & DIRECTOR',
+      ats: '96% ATS',
+      desc: 'Deep burgundy executive headers, pedigree split, and high-impact accomplishment bullets.',
+      layout: 'burgundy_split',
+    },
+    {
+      id: 'mckinsey_consulting',
+      name: 'Global Strategy & Management',
+      tag: 'MCKINSEY / BCG',
+      ats: '99% ATS',
+      desc: 'Rigorous single-column case structure with quantitative business impacts and C-suite advisory.',
+      layout: 'single_column',
+    },
+    {
+      id: 'swiss_grid',
+      name: 'Helvetica Swiss Bauhaus Grid',
+      tag: 'SWISS DESIGN',
+      ats: '98% ATS',
+      desc: 'Ultra-clean black & red geometric alignment inspired by international typographic style.',
+      layout: 'two_column',
+    },
+    {
+      id: 'oxford_academic',
+      name: 'Cambridge & Oxford Fellow',
+      tag: 'ACADEMIC',
+      ats: '99% ATS',
+      desc: 'Timeless scholarly typography with honorable distinctions, credentials, and fellowships.',
+      layout: 'single_column',
+    },
+    {
+      id: 'tokyo_minimal',
+      name: 'Tokyo Minimalist Zen',
+      tag: 'MINIMALIST',
+      ats: '98% ATS',
+      desc: 'Subtle hairline dividers, generous white space balance, and muted charcoal hierarchy.',
+      layout: 'two_column',
+    },
+    {
+      id: 'nordic_clean',
+      name: 'Scandinavian Frost Clean',
+      tag: 'NORDIC TECH',
+      ats: '97% ATS',
+      desc: 'Frost blue accents with clean border dividers and functional human-centric layout.',
+      layout: 'two_column',
+    },
+
+    // 25-30: Specialized & Creative
+    {
+      id: 'neo_brutalist',
+      name: 'Neo-Brutalist Engineering',
+      tag: 'CREATIVE TECH',
+      ats: '95% ATS',
+      desc: 'Bold black border boxes with punchy drop shadows and high-contrast yellow headers.',
+      layout: 'neo_brutalist',
+    },
+    {
+      id: 'coral_modern',
+      name: 'Coral Sunset Product Designer',
+      tag: 'DESIGN LEAD',
+      ats: '96% ATS',
+      desc: 'Warm rose coral accents with modern card backdrops and design system highlights.',
+      layout: 'left_accent',
+    },
+    {
+      id: 'teal_innovator',
+      name: 'Deep Teal Biotech & Hardware',
+      tag: 'BIO / HARDWARE',
+      ats: '97% ATS',
+      desc: 'Rich teal headers with dual-column precision engineering and patent accomplishments.',
+      layout: 'two_column',
+    },
+    {
+      id: 'graphite_compact',
+      name: 'Dense 1-Page High-Density',
+      tag: '10+ YRS EXP',
+      ats: '99% ATS',
+      desc: 'Maximum information density engineered to fit comprehensive 10-year careers onto 1 page.',
+      layout: 'compact',
+    },
+    {
+      id: 'split_duo',
+      name: 'Balanced Symmetrical Duo',
+      tag: 'FULL STACK',
+      ats: '96% ATS',
+      desc: 'Clean cobalt blue accents with structured balance between history and technical skills.',
+      layout: 'two_column',
+    },
+    {
+      id: 'prestige_gold',
+      name: 'Executive VP & Chief Officer Gold',
+      tag: 'C-SUITE EXEC',
+      ats: '97% ATS',
+      desc: 'Dark obsidian top banner with refined warm gold accents for executive candidates.',
+      layout: 'top_banner',
+    },
   ];
 
   return (
@@ -710,12 +995,50 @@ ${skills.join(', ')}
         </main>
 
         {/* Zone 3: Right Live Printable Preview */}
-        <section className="flex-1 bg-[#FAF6F0] overflow-y-auto p-8 flex justify-center items-start">
-          <ResumeTemplateRenderer
-            templateId={selectedTemplate}
-            data={resumeData}
-            zoomLevel={zoomLevel}
-          />
+        <section className="flex-1 bg-[#FAF6F0] flex flex-col overflow-hidden">
+          {/* Quick Template Switcher Ribbon Bar */}
+          <div className="bg-white border-b border-[#EAE3D5] px-4 py-2 flex items-center justify-between gap-3 shrink-0 shadow-2xs no-print">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+              <span className="text-[10.5px] font-black text-gray-500 uppercase tracking-wider flex items-center gap-1 shrink-0 mr-1">
+                <Layout className="w-3.5 h-3.5 text-[#C85A32]" /> Templates:
+              </span>
+              {[
+                { id: 'classic_ats', label: 'Classic Single-Column' },
+                { id: 'modern_executive', label: 'Modern Executive' },
+                { id: 'minimalist_tech', label: 'Tech Monospace' },
+                { id: 'navy_sidebar', label: 'Navy Two-Column' },
+                { id: 'split_duo', label: 'Dual-Column Grid' },
+                { id: 'yc_founder_pitch', label: 'YC Pitch' },
+              ].map((tpl) => (
+                <button
+                  key={tpl.id}
+                  onClick={() => setSelectedTemplate(tpl.id as TemplateId)}
+                  className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border transition-all shrink-0 ${
+                    selectedTemplate === tpl.id
+                      ? 'bg-[#C85A32] text-white border-[#C85A32] shadow-xs'
+                      : 'bg-[#FAF6F0] text-gray-700 border-[#EAE3D5] hover:border-[#C85A32]/40 hover:bg-white'
+                  }`}
+                >
+                  {tpl.label}
+                </button>
+              ))}
+              <button
+                onClick={() => setIsTemplateModalOpen(true)}
+                className="px-2.5 py-1 text-[11px] font-bold text-[#C85A32] bg-[#FDF4F0] border border-[#F6DCD1] hover:bg-[#F6DCD1] rounded-lg transition-all shrink-0 flex items-center gap-1"
+              >
+                Browse All 40+ Templates ▾
+              </button>
+            </div>
+          </div>
+
+          {/* Canvas Scroll Area */}
+          <div className="flex-1 overflow-y-auto p-8 flex justify-center items-start">
+            <ResumeTemplateRenderer
+              templateId={selectedTemplate}
+              data={resumeData}
+              zoomLevel={zoomLevel}
+            />
+          </div>
         </section>
       </div>
 
@@ -726,7 +1049,7 @@ ${skills.join(', ')}
         title="Select Professional Resume Template Design"
         maxWidth="xl"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-h-[70vh] overflow-y-auto p-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-h-[75vh] overflow-y-auto p-1">
           {templatesGallery.map((tpl) => (
             <div
               key={tpl.id}
@@ -734,27 +1057,168 @@ ${skills.join(', ')}
                 setSelectedTemplate(tpl.id as TemplateId);
                 setIsTemplateModalOpen(false);
               }}
-              className={`group relative bg-[#FAF6F0] rounded-2xl border p-4 flex flex-col justify-between gap-3 transition-all cursor-pointer hover:shadow-xl ${
-                selectedTemplate === tpl.id ? 'border-[#C85A32] ring-2 ring-[#C85A32]/30' : 'border-[#EAE3D5] hover:border-[#C85A32]'
+              className={`group relative bg-white rounded-2xl border p-4 flex flex-col justify-between gap-3.5 transition-all duration-200 cursor-pointer shadow-xs hover:shadow-xl ${
+                selectedTemplate === tpl.id
+                  ? 'border-[#C85A32] ring-2 ring-[#C85A32]/30 shadow-md'
+                  : 'border-[#EAE3D5] hover:border-[#C85A32]/60'
               }`}
             >
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] font-black uppercase text-[#C85A32] bg-white border border-[#F6DCD1] px-2 py-0.5 rounded-full">
+              {/* Header Badges */}
+              <div className="flex justify-between items-center gap-1">
+                <span className="text-[9px] font-black uppercase text-[#C85A32] bg-[#FDF4F0] border border-[#F6DCD1] px-2 py-0.5 rounded-full">
                   ★ {tpl.tag}
                 </span>
-                {selectedTemplate === tpl.id && (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span className="text-[9px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full">
+                  {tpl.ats}
+                </span>
+              </div>
+
+              {/* Graphical Layout Mini Preview Thumbnail */}
+              <div className="h-32 bg-[#FAF6F0] rounded-xl border border-[#EAE3D5] p-2.5 flex flex-col gap-1.5 overflow-hidden relative shadow-2xs group-hover:border-[#C85A32]/40 transition-colors">
+                {tpl.id === 'classic_ats' && (
+                  <div className="flex flex-col gap-1 h-full">
+                    {/* Centered Top Header */}
+                    <div className="flex flex-col items-center gap-0.5 pb-1 border-b border-gray-900">
+                      <div className="w-1/2 h-1.5 bg-gray-900 rounded-full" />
+                      <div className="w-3/4 h-0.5 bg-gray-400 rounded-full" />
+                    </div>
+                    {/* Summary */}
+                    <div className="w-full h-0.5 bg-gray-300 rounded mt-0.5" />
+                    {/* Two-Column Split Body */}
+                    <div className="grid grid-cols-12 gap-1 mt-0.5 flex-1">
+                      <div className="col-span-7 flex flex-col gap-1 border-r border-gray-200 pr-1">
+                        <div className="w-2/3 h-0.5 bg-gray-800 rounded" />
+                        <div className="w-full h-0.5 bg-gray-300 rounded" />
+                        <div className="w-4/5 h-0.5 bg-gray-300 rounded" />
+                        <div className="w-full h-0.5 bg-gray-300 rounded" />
+                      </div>
+                      <div className="col-span-5 flex flex-col gap-1">
+                        <div className="w-full h-0.5 bg-gray-800 rounded" />
+                        <div className="w-full h-0.5 bg-gray-300 rounded" />
+                        <div className="w-3/4 h-0.5 bg-gray-300 rounded" />
+                      </div>
+                    </div>
+                    {/* Bottom Certifications Rule */}
+                    <div className="w-full border-t border-gray-300 pt-0.5 flex justify-between">
+                      <div className="w-2/5 h-0.5 bg-gray-400 rounded" />
+                      <div className="w-2/5 h-0.5 bg-gray-400 rounded" />
+                    </div>
+                  </div>
+                )}
+
+                {tpl.id === 'modern_executive' && (
+                  <div className="flex flex-col gap-1.5 h-full">
+                    <div className="w-full bg-[#FDF4F0] border-l-2 border-[#C85A32] p-1 rounded-r flex flex-col gap-0.5">
+                      <div className="w-1/3 h-1 bg-[#C85A32] rounded" />
+                      <div className="w-1/2 h-0.5 bg-gray-400 rounded" />
+                    </div>
+                    <div className="w-full h-1 bg-gray-300 rounded" />
+                    <div className="w-4/5 h-1 bg-gray-300 rounded" />
+                    <div className="w-2/3 h-1 bg-gray-300 rounded" />
+                  </div>
+                )}
+
+                {tpl.id === 'navy_sidebar' && (
+                  <div className="grid grid-cols-12 h-full gap-1 -m-2.5">
+                    <div className="col-span-4 bg-[#0F172A] p-1.5 flex flex-col gap-1">
+                      <div className="w-full h-1 bg-sky-400 rounded" />
+                      <div className="w-2/3 h-0.5 bg-slate-400 rounded" />
+                      <div className="w-full h-0.5 bg-slate-600 rounded mt-1" />
+                      <div className="w-full h-0.5 bg-slate-600 rounded" />
+                    </div>
+                    <div className="col-span-8 p-1.5 flex flex-col gap-1">
+                      <div className="w-1/2 h-1 bg-gray-800 rounded" />
+                      <div className="w-full h-0.5 bg-gray-300 rounded" />
+                      <div className="w-4/5 h-0.5 bg-gray-300 rounded" />
+                      <div className="w-full h-0.5 bg-gray-300 rounded" />
+                    </div>
+                  </div>
+                )}
+
+                {tpl.id === 'navy_header' && (
+                  <div className="flex flex-col h-full -m-2.5">
+                    <div className="bg-[#0B1E36] p-2 flex flex-col items-center gap-0.5 text-center">
+                      <div className="w-1/3 h-1 bg-white rounded" />
+                      <div className="w-1/2 h-0.5 bg-sky-300 rounded" />
+                    </div>
+                    <div className="p-2 flex flex-col gap-1">
+                      <div className="w-1/3 h-1 bg-gray-700 rounded" />
+                      <div className="w-full h-0.5 bg-gray-300 rounded" />
+                      <div className="w-4/5 h-0.5 bg-gray-300 rounded" />
+                    </div>
+                  </div>
+                )}
+
+                {tpl.id === 'minimalist_tech' && (
+                  <div className="flex flex-col gap-1 h-full font-mono bg-zinc-900 -m-2.5 p-2 text-[6px] text-zinc-300">
+                    <div className="text-emerald-400 font-bold">// DEV_EXEC</div>
+                    <div className="w-3/4 h-0.5 bg-zinc-700 rounded" />
+                    <div className="w-full h-0.5 bg-zinc-700 rounded" />
+                    <div className="w-2/3 h-0.5 bg-zinc-700 rounded" />
+                  </div>
+                )}
+
+                {tpl.id === 'soft_green_pill' && (
+                  <div className="flex flex-col gap-1 h-full">
+                    <div className="flex justify-between items-center pb-1 border-b border-emerald-200">
+                      <div className="w-1/3 h-1 bg-gray-800 rounded" />
+                      <div className="w-1/4 h-1 bg-emerald-200 rounded-full" />
+                    </div>
+                    <div className="w-full h-0.5 bg-emerald-100 rounded" />
+                    <div className="w-5/6 h-0.5 bg-gray-300 rounded" />
+                    <div className="w-4/5 h-0.5 bg-gray-300 rounded" />
+                  </div>
+                )}
+
+                {tpl.id === 'right_sidebar' && (
+                  <div className="grid grid-cols-12 h-full gap-1 -m-2.5">
+                    <div className="col-span-8 p-1.5 flex flex-col gap-1">
+                      <div className="w-1/2 h-1 bg-gray-800 rounded" />
+                      <div className="w-full h-0.5 bg-gray-300 rounded" />
+                      <div className="w-4/5 h-0.5 bg-gray-300 rounded" />
+                    </div>
+                    <div className="col-span-4 bg-[#0F2537] p-1.5 flex flex-col gap-1">
+                      <div className="w-full h-1 bg-sky-400 rounded" />
+                      <div className="w-full h-0.5 bg-slate-600 rounded" />
+                    </div>
+                  </div>
+                )}
+
+                {tpl.id === 'yellow_creative' && (
+                  <div className="grid grid-cols-12 h-full gap-1 -m-2.5">
+                    <div className="col-span-4 bg-[#FAF8ED] p-1.5 flex flex-col items-center gap-1 border-r border-[#EBE5CE]">
+                      <div className="w-4 h-4 rounded-full bg-amber-400" />
+                      <div className="w-full h-0.5 bg-amber-800 rounded" />
+                    </div>
+                    <div className="col-span-8 p-1.5 flex flex-col gap-1">
+                      <div className="w-1/2 h-1 bg-gray-800 rounded" />
+                      <div className="w-full h-0.5 bg-gray-300 rounded" />
+                      <div className="w-4/5 h-0.5 bg-gray-300 rounded" />
+                    </div>
+                  </div>
                 )}
               </div>
 
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-bold text-[#231F1D]">{tpl.name}</span>
-                <span className="text-[11px] text-[#786F68]">{tpl.desc}</span>
+              {/* Text Meta */}
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs font-bold text-[#231F1D] flex items-center justify-between">
+                  {tpl.name}
+                  {selectedTemplate === tpl.id && (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  )}
+                </span>
+                <span className="text-[10px] text-[#786F68] leading-tight line-clamp-2">{tpl.desc}</span>
               </div>
 
-              {/* Blue Start Button Overlay on Hover matching user screenshot */}
-              <div className="mt-2 w-full py-2 bg-[#2563EB] text-white text-xs font-bold rounded-xl text-center shadow-md opacity-90 group-hover:opacity-100 group-hover:bg-[#1D4ED8] transition-all">
-                Start with this template
+              {/* Action Button */}
+              <div
+                className={`w-full py-1.5 text-xs font-bold rounded-xl text-center shadow-xs transition-all ${
+                  selectedTemplate === tpl.id
+                    ? 'bg-[#C85A32] text-white'
+                    : 'bg-[#FAF6F0] text-[#231F1D] group-hover:bg-[#C85A32] group-hover:text-white'
+                }`}
+              >
+                {selectedTemplate === tpl.id ? 'Active Template' : 'Use Template'}
               </div>
             </div>
           ))}
