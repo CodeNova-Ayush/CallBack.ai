@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -29,26 +29,30 @@ export default function DashboardPage() {
   const [newResumeTitle, setNewResumeTitle] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>('modern_executive');
 
-  const [resumes, setResumes] = useState([
-    {
-      id: 'demo-resume-alex-1',
-      title: 'Ayush Mishra — Senior Full-Stack & AI Engineer',
-      updatedAt: '2 hours ago',
-      atsScore: 94,
-      trustScore: 96,
-      isActive: true,
-      template: 'Modern Executive',
-    },
-    {
-      id: 'demo-resume-alex-2',
-      title: 'Ayush Mishra — Lead Frontend Architect',
-      updatedAt: '3 days ago',
-      atsScore: 88,
-      trustScore: 92,
-      isActive: false,
-      template: 'Classic ATS',
-    },
-  ]);
+  const [resumes, setResumes] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/resumes')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.resumes && data.resumes.length > 0) {
+          setResumes(data.resumes);
+        } else {
+          setResumes([
+            {
+              id: 'demo-resume-alex-1',
+              title: 'Alex Rivera — Staff AI Engineer & Systems Architect',
+              updatedAt: 'Recently updated',
+              atsScore: 99,
+              trustScore: 98,
+              isActive: true,
+              template: 'Executive Two-Column',
+            },
+          ]);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleCreateResume = () => {
     if (!newResumeTitle.trim()) return;
@@ -251,7 +255,7 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-5">
           <Input
             label="Resume Title / Position Target"
-            placeholder="e.g. Ayush Mishra — Senior AI Engineer"
+            placeholder="e.g. John Snow — Senior AI Engineer"
             value={newResumeTitle}
             onChange={(e) => setNewResumeTitle(e.target.value)}
           />
