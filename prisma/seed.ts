@@ -23,8 +23,8 @@ async function main() {
   const alexCandidate = await prisma.user.create({
     data: {
       id: 'demo-user-alex',
-      email: 'ayush.mishra@demo.com',
-      name: 'Ayush Mishra',
+      email: 'alex.rivera@neuralflow.ai',
+      name: 'Alex Rivera',
       passwordHash: 'demo_hashed_pass_123',
       role: 'candidate',
     },
@@ -52,30 +52,30 @@ async function main() {
 
   console.log('✅ Created Demo Users (Candidate & Recruiter)');
 
-  // 2. Create Resumes for Ayush Mishra
+  // 2. Create Resumes for Alex Rivera
   const alexResume = await prisma.resume.create({
     data: {
       id: 'demo-resume-alex-1',
       userId: alexCandidate.id,
-      title: 'Ayush Mishra — Senior Full-Stack & AI Engineer',
+      title: 'Alex Rivera — Staff AI Engineer & Systems Architect',
       isActive: true,
     },
   });
 
-  // Sections for Ayush
+  // Sections for Alex Rivera
   const alexSections = [
     {
       sectionType: 'personal_info',
       order: 1,
       content: JSON.stringify({
-        fullName: 'Ayush Mishra',
-        email: 'ayush.mishra@demo.com',
-        phone: '+1 (555) 234-5678',
+        fullName: 'Alex Rivera',
+        email: 'alex.rivera@neuralflow.ai',
+        phone: '+1 (555) 439-8821',
         location: 'San Francisco, CA',
-        linkedin: 'linkedin.com/in/ayushmishradev',
-        github: 'github.com/ayushmishra-ai',
-        website: 'ayushmishra.dev',
-        summary: 'Passionate Full-Stack AI Engineer with 4+ years of experience architecting high-throughput distributed systems, vector search pipelines, and intuitive React web applications. Proven track record reducing API latency by 45% and driving 3M+ active user growth.',
+        linkedin: 'linkedin.com/in/alexrivera-ai',
+        github: 'github.com/alexrivera',
+        website: 'alexrivera.ai',
+        summary: 'Staff AI Engineer and Multi-Agent Architect with 6+ years of experience engineering high-throughput distributed systems, vector database engines, and LLM inference clusters. Ex-Stripe and Y Combinator W24 alum with proven expertise in scaling systems from zero to 150k+ daily active users at sub-180ms p95 latency.',
       }),
     },
     {
@@ -84,32 +84,32 @@ async function main() {
       content: JSON.stringify([
         {
           id: 'exp-1',
-          role: 'Senior Full-Stack AI Engineer',
-          company: 'Aether Cloud Tech',
+          role: 'Staff AI Engineer & Systems Architect',
+          company: 'NeuralFlow AI',
           location: 'San Francisco, CA',
-          startDate: '2023-01',
+          startDate: '2023-03',
           endDate: 'Present',
           isCurrent: true,
-          description: 'Led the core AI platform team building LLM orchestration and retrieval pipelines.',
+          description: 'Architected distributed multi-agent swarm platform processing 150,000+ daily queries.',
           bullets: [
-            'Architected scalable RAG query pipeline using Next.js 14, PgVector, and Claude 3.5 Sonnet, handling 150k daily active requests at 180ms p95 latency.',
-            'Engineered custom prompt evaluation framework that boosted grounding precision by 32% and cut model hallucination rate below 0.4%.',
-            'Mentored 5 junior developers and instituted automated CI/CD code quality checks, improving deployment velocity by 40%.',
+            'Architected distributed multi-agent swarm platform using Next.js 16, PgVector, and Claude 3.5 Sonnet processing 150,000+ daily queries at sub-180ms p95 latency.',
+            'Engineered custom semantic cache and vector retrieval pipeline that cut token compute expenditure by 42% while raising factual precision to 99.4%.',
+            'Scaled Kubernetes multi-region cluster handling 99.99% uptime during 10x query volume surges with automated zero-downtime rollouts.',
           ],
         },
         {
           id: 'exp-2',
-          role: 'Software Engineer',
-          company: 'Pulse Digital Analytics',
-          location: 'San Jose, CA',
+          role: 'Senior Distributed Systems Engineer',
+          company: 'Stripe',
+          location: 'South San Francisco, CA',
           startDate: '2021-06',
-          endDate: '2022-12',
+          endDate: '2023-02',
           isCurrent: false,
-          description: 'Developed real-time analytics dashboard and event streaming infrastructure.',
+          description: 'Engineered high-concurrency payment routing microservices.',
           bullets: [
-            'Built responsive React + TypeScript analytics portal used by 45k enterprise business managers.',
-            'Optimized PostgreSQL query index strategies, cutting complex aggregation runtimes from 4.2s to 210ms.',
-            'Integrated Stripe billing and subscription webhooks processing $2.4M annually with 99.99% uptime.',
+            'Engineered high-concurrency payment routing microservices in Go and Rust processing over $2.4B in annual transaction volume.',
+            'Optimized PostgreSQL connection pooling and distributed index strategies, slashing tail database latency by 45% (from 4.2s to 210ms).',
+            'Led cross-functional team of 6 engineers implementing end-to-end telemetry and automated CI/CD pipelines with 94% test coverage.',
           ],
         },
       ]),
