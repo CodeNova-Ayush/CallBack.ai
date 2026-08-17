@@ -1,21 +1,21 @@
 /* ==========================================================================
    Callback AI — Frontend Core JavaScript Logic Engine
-   Author: Ayush Mishra
+   Author: John Snow
    ========================================================================== */
 
 // Global Application State
 const AppState = {
-  activeResumeId: 'demo-resume-ayush-1',
+  activeResumeId: 'demo-resume-alex-1',
   selectedTemplate: 'modern_executive',
   zoomLevel: 100,
   candidateData: {
     personalInfo: {
-      fullName: 'Ayush Mishra',
-      email: 'ayush.mishra@demo.com',
+      fullName: 'John Snow',
+      email: 'john.snow@demo.com',
       phone: '+1 (555) 234-5678',
       location: 'San Francisco, CA',
-      linkedin: 'linkedin.com/in/ayushmishradev',
-      github: 'github.com/ayushmishra-ai',
+      linkedin: 'linkedin.com/in/johnsnowdev',
+      github: 'github.com/johnsnow-ai',
       summary: 'Passionate Full-Stack AI Engineer with 4+ years of experience architecting high-throughput distributed systems, vector search pipelines, and intuitive React web applications. Proven track record reducing API latency by 45% and driving 3M+ active user growth.'
     },
     experiences: [
@@ -191,7 +191,7 @@ function renderResumeHTML(data, templateId) {
 // RAG Agent Question Answer Engine
 function askAgent(question) {
   const q = question.toLowerCase();
-  const name = AppState.candidateData.personalInfo.fullName || 'Ayush Mishra';
+  const name = AppState.candidateData.personalInfo.fullName || 'John Snow';
 
   if (q.includes('latency') || q.includes('achievement') || q.includes('biggest')) {
     return {
