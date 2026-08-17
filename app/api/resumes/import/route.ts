@@ -1,13 +1,49 @@
 import { NextResponse } from 'next/server';
 import { parseAndImportOldResume } from '@/lib/services/resume-importer';
+import { extractTextFromPdf, extractTextFromDocx } from '@/lib/services/document-parser';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { rawText, customTitle, fileName } = body;
+    const contentType = request.headers.get('content-type') || '';
+    let rawText = '';
+    let customTitle: string | undefined;
+    let fileName: string | undefined;
 
-    if (!rawText || typeof rawText !== 'string') {
-      return NextResponse.json({ error: 'Please provide valid resume text or content to analyze.' }, { status: 400 });
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      const file = formData.get('file') as File | null;
+      customTitle = (formData.get('customTitle') as string) || undefined;
+      const directText = (formData.get('rawText') as string) || '';
+
+      if (file) {
+        fileName = file.name;
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        if (file.name.toLowerCase().endsWith('.pdf')) {
+          rawText = await extractTextFromPdf(buffer);
+        } else if (file.name.toLowerCase().endsWith('.docx')) {
+          rawText = await extractTextFromDocx(buffer);
+        } else {
+          rawText = buffer.toString('utf-8');
+        }
+      }
+
+      if (!rawText && directText) {
+        rawText = directText;
+      }
+    } else {
+      const body = await request.json();
+      rawText = body.rawText || '';
+      customTitle = body.customTitle;
+      fileName = body.fileName;
+    }
+
+    if (!rawText || typeof rawText !== 'string' || rawText.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Please provide valid resume text or upload a readable PDF/DOCX/TXT file.' },
+        { status: 400 }
+      );
     }
 
     const result = await parseAndImportOldResume(rawText, customTitle, fileName);
