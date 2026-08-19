@@ -1,36 +1,60 @@
 @import "tailwindcss";
 
 @theme {
-  --color-terracotta-500: #C85A32;
-  --color-terracotta-600: #B24D28;
-  --color-espresso-500: #786F68;
-  --color-espresso-900: #231F1D;
+  --color-primary-brand: #048BA2;
+  --color-primary-hover: #037488;
+  --color-primary-light: #E6F5F8;
+  --color-brand-bg: #F5F9FB;
 }
 
 @layer base {
   :root {
-    --background: #FAF6F0;
+    --background: #F5F9FB;
     --card: #FFFFFF;
-    --card-border: #EAE3D5;
-    --foreground: #231F1D;
-    --muted-foreground: #786F68;
-    --primary: #C85A32;
-    --primary-hover: #B24D28;
-    --primary-light: #FDF4F0;
-    --success: #2E7D32;
-    --success-bg: #F1F8E9;
-    --warning: #D84315;
-    --warning-bg: #FBE9E7;
-    --danger: #C62828;
-    --danger-bg: #FFEBEE;
+    --card-border: #E2E8F0;
+    --foreground: #0F172A;
+    --muted-foreground: #64748B;
+    --primary: #048BA2;
+    --primary-hover: #037488;
+    --primary-light: #E6F5F8;
+    --success: #048BA2;
+    --success-bg: #E6F5F8;
+    --warning: #D97706;
+    --warning-bg: #FFFBEB;
+    --danger: #E11D48;
+    --danger-bg: #FFF1F2;
   }
 
   body {
-    background-color: var(--background);
+    background-color: #F5F9FB;
     color: var(--foreground);
-    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Plus Jakarta Sans', var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
+}
+
+/* Unified #048BA2 Helpers */
+.bg-aurora-mesh {
+  background: radial-gradient(at 0% 0%, rgba(4, 139, 162, 0.12) 0px, transparent 50%),
+              radial-gradient(at 100% 0%, rgba(4, 139, 162, 0.12) 0px, transparent 50%),
+              #F5F9FB;
+}
+
+.text-aurora-gradient {
+  color: #048BA2;
+}
+
+.bg-brand-primary {
+  background-color: #048BA2;
+}
+
+.hover-bg-brand-primary:hover {
+  background-color: #037488;
+}
+
+.border-aurora-glow {
+  border-color: rgba(4, 139, 162, 0.3);
+  box-shadow: 0 0 25px -5px rgba(4, 139, 162, 0.2);
 }
 
 /* Custom Scrollbar */
@@ -44,12 +68,32 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D8CFC4;
+  background: #CBD5E1;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #BDB2A4;
+  background: #94A3B8;
+}
+
+/* Continuous Infinite Smooth Marquee Animation */
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-infinite {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll 40s linear infinite;
+}
+
+.animate-marquee-infinite:hover {
+  animation-play-state: paused;
 }
 
 /* ATS Pure A4 Print Stylesheet */
@@ -65,8 +109,8 @@
     margin: 0 !important;
     padding: 0 !important;
     width: 210mm !important;
-    height: 297mm !important;
-    overflow: hidden !important;
+    height: 100% !important;
+    overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -101,15 +145,14 @@
     left: 0 !important;
     width: 210mm !important;
     min-height: 297mm !important;
-    max-height: 297mm !important;
     margin: 0 !important;
-    padding: 10mm 12mm !important;
+    padding: 10mm 14mm !important;
     box-shadow: none !important;
     border: none !important;
     background: #ffffff !important;
     transform: none !important;
     box-sizing: border-box !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     z-index: 99999 !important;
   }
 

@@ -45,7 +45,11 @@ export type TemplateId =
   | 'prestige_gold'
   | 'cloud_architect'
   | 'rust_systems'
-  | 'ai_researcher';
+  | 'ai_researcher'
+  | 'ai_ml_lead'
+  | 'quantum_research'
+  | 'growth_lead'
+  | 'design_portfolio';
 
 export interface ResumeData {
   personalInfo: {
@@ -406,26 +410,26 @@ export const ResumeTemplateRenderer: React.FC<ResumeTemplateProps> = ({
       )}
 
       {/* =========================================================================
-          2. MODERN EXECUTIVE (Terracotta Left Accent)
+          2. MODERN EXECUTIVE (Royal Blue / Indigo Left Accent)
          ========================================================================= */}
       {templateId === 'modern_executive' && (
-        <div className="flex flex-col gap-4 border-l-4 border-[#C85A32] pl-6">
+        <div className="flex flex-col gap-4 border-l-4 border-blue-600 pl-6">
           <div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">{fullName || 'YOUR NAME'}</h1>
-            <div className="text-xs text-[#C85A32] font-semibold flex flex-wrap gap-2 mt-1">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">{fullName || 'YOUR NAME'}</h1>
+            <div className="text-xs text-blue-600 font-semibold flex flex-wrap gap-2 mt-1">
               {email && <span>{email}</span>}
               {phone && <span>• {phone}</span>}
               {location && <span>• {location}</span>}
             </div>
           </div>
           {summary && (
-            <div className="bg-[#FAF6F0] border-l-2 border-[#C85A32] p-3 rounded-r">
-              <p className="text-xs text-gray-800 leading-relaxed italic">{summary}</p>
+            <div className="bg-blue-50/50 border-l-2 border-blue-600 p-3 rounded-r">
+              <p className="text-xs text-slate-800 leading-relaxed italic">{summary}</p>
             </div>
           )}
           {expList.length > 0 && (
             <div className="flex flex-col gap-3">
-              <h3 className="text-xs font-black text-[#C85A32] uppercase tracking-wider border-b border-[#EAE3D5] pb-1">
+              <h3 className="text-xs font-black text-blue-600 uppercase tracking-wider border-b border-slate-200 pb-1">
                 Work Experience
               </h3>
               {expList.map((exp) => (
@@ -545,6 +549,278 @@ export const ResumeTemplateRenderer: React.FC<ResumeTemplateProps> = ({
           </div>
         </div>
       )}
+
+      {/* =========================================================================
+          5. TOP HEADER BANNER (Navy / Indigo / Gold Banner)
+         ========================================================================= */}
+      {(templateId === 'navy_header' ||
+        templateId === 'prestige_gold' ||
+        templateId === 'fintech_lead' ||
+        templateId === 'cloud_architect') && (
+        <div className="flex flex-col gap-4 -m-8">
+          <div className="bg-[#0B1E36] text-white p-6 pb-4">
+            <h1 className="text-2xl font-black tracking-tight">{fullName || 'YOUR NAME'}</h1>
+            <p className="text-xs text-sky-300 font-semibold mt-1">
+              {expList.length > 0 ? expList[0].role : MOCK_PERSONA.title}
+            </p>
+            <div className="text-[10px] text-gray-300 flex flex-wrap gap-3 mt-2">
+              {email && <span>{email}</span>}
+              {phone && <span>• {phone}</span>}
+              {location && <span>• {location}</span>}
+              {linkedin && <span>• {linkedin}</span>}
+            </div>
+          </div>
+
+          <div className="p-8 pt-2 flex flex-col gap-4 text-xs text-[#1E293B]">
+            {summary && (
+              <div>
+                <h3 className="font-black text-[#0B1E36] uppercase text-[11px] border-b-2 border-sky-900 pb-0.5">
+                  Executive Summary
+                </h3>
+                <p className="leading-relaxed mt-1 text-gray-800">{summary}</p>
+              </div>
+            )}
+
+            <div className="grid grid-cols-12 gap-6 mt-1">
+              <div className="col-span-8 flex flex-col gap-3">
+                {expList.length > 0 && (
+                  <div>
+                    <h3 className="font-black text-[#0B1E36] uppercase text-[11px] border-b-2 border-sky-900 pb-0.5">
+                      Professional Experience
+                    </h3>
+                    <div className="flex flex-col gap-3 mt-2">
+                      {expList.map((exp) => (
+                        <div key={exp.id} className="flex flex-col gap-0.5">
+                          <div className="flex justify-between font-bold text-gray-900 text-[11.5px]">
+                            <span>{exp.role} @ <span className="text-[#0B1E36]">{exp.company}</span></span>
+                            <span className="text-gray-500 font-normal text-[10px]">{exp.startDate} – {exp.endDate}</span>
+                          </div>
+                          <ul className="list-disc list-inside text-gray-700 text-[10.5px]">
+                            {exp.bullets?.map((b, idx) => (
+                              <li key={idx}>{b}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="col-span-4 flex flex-col gap-4">
+                {eduList.length > 0 && (
+                  <div>
+                    <h3 className="font-black text-[#0B1E36] uppercase text-[11px] border-b-2 border-sky-900 pb-0.5">
+                      Education
+                    </h3>
+                    <div className="flex flex-col gap-2 mt-2">
+                      {eduList.map((edu) => (
+                        <div key={edu.id} className="flex flex-col text-[10.5px]">
+                          <span className="font-bold text-gray-900">{edu.institution}</span>
+                          <span className="text-gray-700">{edu.degree}</span>
+                          <span className="text-gray-500 text-[9.5px]">{edu.startDate} – {edu.endDate}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {skillList.length > 0 && (
+                  <div>
+                    <h3 className="font-black text-[#0B1E36] uppercase text-[11px] border-b-2 border-sky-900 pb-0.5">
+                      Technical Skills
+                    </h3>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {skillList.map((sk, idx) => (
+                        <span key={idx} className="px-2 py-0.5 bg-sky-50 text-sky-950 font-medium rounded text-[10px] border border-sky-200">
+                          {sk}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          6. EMERALD / NORDIC TECH & HARDWARE (Emerald Accents)
+         ========================================================================= */}
+      {(templateId === 'soft_green_pill' ||
+        templateId === 'teal_innovator' ||
+        templateId === 'nordic_clean' ||
+        templateId === 'ai_researcher' ||
+        templateId === 'ai_ml_lead' ||
+        templateId === 'quantum_research') && (
+        <div className="flex flex-col gap-4">
+          <div className="border-b-2 border-emerald-700 pb-3 flex justify-between items-end">
+            <div>
+              <h1 className="text-2xl font-black text-emerald-950 tracking-tight">{fullName || 'YOUR NAME'}</h1>
+              <p className="text-xs font-bold text-emerald-700 mt-0.5">
+                {expList.length > 0 ? expList[0].role : MOCK_PERSONA.title}
+              </p>
+            </div>
+            <div className="text-[10px] text-gray-600 flex flex-col items-end">
+              <span>{email}</span>
+              <span>{phone} • {location}</span>
+            </div>
+          </div>
+
+          {summary && (
+            <div className="p-3 bg-emerald-50/70 border-l-3 border-emerald-600 rounded-r text-xs text-gray-800 leading-relaxed">
+              {summary}
+            </div>
+          )}
+
+          <div className="grid grid-cols-12 gap-5 text-xs text-gray-900">
+            <div className="col-span-8 flex flex-col gap-3">
+              <h3 className="text-xs font-black uppercase tracking-wider text-emerald-900 border-b border-emerald-200 pb-0.5">
+                Experience
+              </h3>
+              {expList.map((exp) => (
+                <div key={exp.id} className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-bold text-[11.5px]">
+                    <span>{exp.role} — <span className="text-emerald-800">{exp.company}</span></span>
+                    <span className="text-gray-500 font-normal text-[10px]">{exp.startDate} – {exp.endDate}</span>
+                  </div>
+                  <ul className="list-disc list-inside text-gray-700 text-[10.5px]">
+                    {exp.bullets?.map((b, idx) => (
+                      <li key={idx}>{b}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            <div className="col-span-4 flex flex-col gap-4">
+              <div>
+                <h3 className="text-xs font-black uppercase tracking-wider text-emerald-900 border-b border-emerald-200 pb-0.5">
+                  Skills & Tools
+                </h3>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {skillList.map((sk, idx) => (
+                    <span key={idx} className="px-2 py-0.5 bg-emerald-50 text-emerald-800 font-bold rounded-full text-[10px] border border-emerald-200">
+                      {sk}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {eduList.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-wider text-emerald-900 border-b border-emerald-200 pb-0.5">
+                    Education
+                  </h3>
+                  <div className="flex flex-col gap-1.5 mt-2">
+                    {eduList.map((edu) => (
+                      <div key={edu.id} className="flex flex-col text-[10.5px]">
+                        <span className="font-bold">{edu.institution}</span>
+                        <span className="text-gray-700">{edu.degree}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          7. UNIVERSAL EXECUTIVE ATS FALLBACK (Covers All Other Templates)
+         ========================================================================= */}
+      {templateId !== 'classic_ats' &&
+        templateId !== 'modern_executive' &&
+        templateId !== 'minimalist_tech' &&
+        templateId !== 'navy_sidebar' &&
+        templateId !== 'navy_header' &&
+        templateId !== 'prestige_gold' &&
+        templateId !== 'fintech_lead' &&
+        templateId !== 'cloud_architect' &&
+        templateId !== 'soft_green_pill' &&
+        templateId !== 'teal_innovator' &&
+        templateId !== 'nordic_clean' &&
+        templateId !== 'ai_researcher' &&
+        templateId !== 'ai_ml_lead' &&
+        templateId !== 'quantum_research' && (
+          <div className="flex flex-col gap-3.5">
+            <div className="flex flex-col border-b-2 border-gray-900 pb-2">
+              <h1 className="text-2xl font-black uppercase tracking-tight text-gray-900">{fullName || 'YOUR NAME'}</h1>
+              <p className="text-xs font-semibold text-gray-700 mt-0.5">
+                {expList.length > 0 ? expList[0].role : MOCK_PERSONA.title}
+              </p>
+              <div className="text-[10px] text-gray-600 flex flex-wrap gap-2 mt-1">
+                {email && <span>{email}</span>}
+                {phone && <span>• {phone}</span>}
+                {location && <span>• {location}</span>}
+                {linkedin && <span>• {linkedin}</span>}
+              </div>
+            </div>
+
+            {summary && (
+              <div>
+                <h3 className="font-black uppercase text-[11px] border-b border-gray-300 pb-0.5 text-gray-900">
+                  Summary
+                </h3>
+                <p className="text-xs leading-relaxed text-gray-800 mt-1">{summary}</p>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-3">
+              <h3 className="font-black uppercase text-[11px] border-b border-gray-300 pb-0.5 text-gray-900">
+                Experience
+              </h3>
+              {expList.map((exp) => (
+                <div key={exp.id} className="flex flex-col gap-0.5 text-xs">
+                  <div className="flex justify-between font-bold text-gray-900">
+                    <span>{exp.role} @ {exp.company}</span>
+                    <span className="text-gray-500 font-normal text-[10px]">{exp.startDate} – {exp.endDate}</span>
+                  </div>
+                  <ul className="list-disc list-inside text-gray-700 text-[10.5px]">
+                    {exp.bullets?.map((b, idx) => (
+                      <li key={idx}>{b}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 pt-1">
+              {eduList.length > 0 && (
+                <div>
+                  <h3 className="font-black uppercase text-[11px] border-b border-gray-300 pb-0.5 text-gray-900">
+                    Education
+                  </h3>
+                  <div className="flex flex-col gap-1 mt-1 text-xs">
+                    {eduList.map((edu) => (
+                      <div key={edu.id}>
+                        <span className="font-bold block">{edu.institution}</span>
+                        <span className="text-gray-600 text-[10.5px]">{edu.degree}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {skillList.length > 0 && (
+                <div>
+                  <h3 className="font-black uppercase text-[11px] border-b border-gray-300 pb-0.5 text-gray-900">
+                    Skills
+                  </h3>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {skillList.map((sk, idx) => (
+                      <span key={idx} className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-800 text-[10px] font-medium">
+                        {sk}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
     </div>
   );
 };

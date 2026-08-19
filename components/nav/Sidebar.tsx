@@ -118,9 +118,9 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 bg-[#FAF6F0] border-r border-[#EAE3D5] h-screen sticky top-0 flex flex-col shrink-0 select-none z-30 print:hidden no-print">
+    <aside className="w-64 bg-slate-50/90 backdrop-blur-xl border-r border-slate-200/80 h-screen sticky top-0 flex flex-col shrink-0 select-none z-30 print:hidden no-print">
       {/* Brand Header */}
-      <div className="p-4 border-b border-[#EAE3D5]">
+      <div className="p-4 border-b border-slate-200/80 bg-white/50">
         <Logo size="md" showTagline />
       </div>
 
@@ -128,7 +128,7 @@ export const Sidebar: React.FC = () => {
       <div className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-6">
         {navGroups.map((group, idx) => (
           <div key={idx} className="flex flex-col gap-1">
-            <span className="px-3 text-[11px] font-bold text-[#786F68] uppercase tracking-wider">
+            <span className="px-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
               {group.groupName}
             </span>
             {group.items.map((item) => {
@@ -140,21 +140,23 @@ export const Sidebar: React.FC = () => {
                   key={item.name}
                   href={item.href}
                   className={clsx(
-                    'flex items-center justify-between px-3.5 py-2.5 text-xs font-bold rounded-full transition-all',
+                    'flex items-center justify-between px-3.5 py-2 text-xs font-bold rounded-full transition-all',
                     isActive
-                      ? 'bg-[#C85A32] text-white shadow-xs'
-                      : 'text-[#4A423C] hover:text-[#231F1D] hover:bg-white/80'
+                      ? 'bg-[#048BA2] text-white shadow-md shadow-[#048BA2]/25'
+                      : 'text-slate-600 hover:text-slate-950 hover:bg-white shadow-2xs hover:shadow-xs'
                   )}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Icon className={clsx('w-4 h-4', isActive ? 'text-white' : 'text-[#786F68]')} />
+                    <Icon className={clsx('w-4 h-4', isActive ? 'text-white' : 'text-slate-500')} />
                     <span>{item.name}</span>
                   </div>
                   {item.badge && (
                     <span
                       className={clsx(
                         'px-2 py-0.5 text-[9px] font-extrabold rounded-full uppercase',
-                        isActive ? 'bg-white/20 text-white' : 'bg-[#FDF4F0] text-[#C85A32]'
+                        isActive
+                          ? 'bg-white/20 text-white'
+                          : 'bg-[#E6F5F8] text-[#048BA2] border border-[#048BA2]/20'
                       )}
                     >
                       {item.badge}
@@ -168,14 +170,14 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* User Footer Profile */}
-      <div className="p-3 border-t border-[#EAE3D5] bg-white/60 flex items-center justify-between">
+      <div className="p-3 border-t border-slate-200/80 bg-white/70 flex items-center justify-between">
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <div className="w-8 h-8 rounded-full bg-[#C85A32] text-white flex items-center justify-center text-xs font-bold shrink-0">
+          <div className="w-8 h-8 rounded-full bg-[#048BA2] text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs">
             {initials}
           </div>
           <div className="flex flex-col truncate">
-            <span className="text-xs font-bold text-[#231F1D] truncate">{candidateName}</span>
-            <span className="text-[10px] text-[#786F68] truncate">{candidateEmail}</span>
+            <span className="text-xs font-bold text-slate-900 truncate">{candidateName}</span>
+            <span className="text-[10px] text-slate-500 truncate">{candidateEmail}</span>
           </div>
         </div>
         <button
@@ -184,9 +186,9 @@ export const Sidebar: React.FC = () => {
             localStorage.removeItem('is_authenticated');
             localStorage.removeItem('user_name');
             localStorage.removeItem('user_email');
-            await signOut({ redirectUrl: '/login' });
+            await signOut({ redirectUrl: '/sign-in' });
           }}
-          className="p-1.5 text-[#786F68] hover:text-[#231F1D] hover:bg-[#FAF6F0] rounded-full transition-colors cursor-pointer"
+          className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
           title="Switch Account / Logout"
         >
           <LogOut className="w-4 h-4" />

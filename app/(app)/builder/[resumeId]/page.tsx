@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, use } from 'react';
+import React, { useState, useEffect, use } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import {
   FileText,
   GripVertical,
@@ -18,6 +20,8 @@ import {
   Layout,
   RotateCcw,
   CheckCircle2,
+  Save,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
@@ -176,6 +180,12 @@ export default function BuilderPage(props: { params: Promise<{ resumeId: string 
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [isEnhancing, setIsEnhancing] = useState<string | null>(null);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState<boolean>(false);
+  const [isExportPreviewModalOpen, setIsExportPreviewModalOpen] = useState<boolean>(false);
+  const [templateCategory, setTemplateCategory] = useState<string>('All');
+  const [templateSearchQuery, setTemplateSearchQuery] = useState<string>('');
+  const [isExportingPDF, setIsExportingPDF] = useState<boolean>(false);
+  const [downloadSuccessMsg, setDownloadSuccessMsg] = useState<string | null>(null);
+  const [lastSavedTime, setLastSavedTime] = useState<string>('Just now');
 
   // Resume State
   const [personalInfo, setPersonalInfo] = useState(initialData.personalInfo);
@@ -184,6 +194,51 @@ export default function BuilderPage(props: { params: Promise<{ resumeId: string 
   const [projects, setProjects] = useState(initialData.projects);
   const [skills, setSkills] = useState<string[]>(initialData.skills);
   const [newSkillInput, setNewSkillInput] = useState('');
+
+  // 1. Load from Browser Local Storage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('callback_ai_saved_resume_' + resumeId);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.personalInfo) setPersonalInfo(parsed.personalInfo);
+          if (parsed.experiences && parsed.experiences.length > 0) setExperiences(parsed.experiences);
+          if (parsed.education && parsed.education.length > 0) setEducation(parsed.education);
+          if (parsed.projects && parsed.projects.length > 0) setProjects(parsed.projects);
+          if (parsed.skills && parsed.skills.length > 0) setSkills(parsed.skills);
+          if (parsed.selectedTemplate) setSelectedTemplate(parsed.selectedTemplate);
+          setLastSavedTime('Loaded from Local Storage');
+        }
+      } catch (e) {
+        console.error('Error loading resume from local storage:', e);
+      }
+    }
+  }, [resumeId]);
+
+  // 2. Auto-save to Browser Local Storage on edits
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const timer = setTimeout(() => {
+        try {
+          const payload = {
+            personalInfo,
+            experiences,
+            education,
+            projects,
+            skills,
+            selectedTemplate,
+            updatedAt: new Date().toISOString(),
+          };
+          localStorage.setItem('callback_ai_saved_resume_' + resumeId, JSON.stringify(payload));
+          setLastSavedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        } catch (e) {
+          console.error('Error saving to local storage:', e);
+        }
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [personalInfo, experiences, education, projects, skills, selectedTemplate, resumeId]);
 
   const sectionsList = [
     { id: 'personal_info', title: 'Personal Information', icon: User },
@@ -358,8 +413,119 @@ ${skills.join(', ')}
     }
   };
 
-  const handleExportPDF = () => {
-    window.print();
+  const [previewModalZoom, setPreviewModalZoom] = useState<number>(65);
+
+  const handleExportPDF = async () => {
+    setIsExportingPDF(true);
+    setDownloadSuccessMsg(null);
+
+    const cleanName = personalInfo.fullName
+      ? personalInfo.fullName.replace(/[^a-zA-Z0-9_\s-]/g, '').trim().replace(/\s+/g, '_')
+      : 'Candidate';
+    const fileName = `${cleanName}_Resume_ATS.pdf`;
+
+    // 1. Force save to Local Storage immediately
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(
+          'callback_ai_saved_resume_' + resumeId,
+          JSON.stringify({
+            personalInfo,
+            experiences,
+            education,
+            projects,
+            skills,
+            selectedTemplate,
+            updatedAt: new Date().toISOString(),
+          })
+        );
+        setLastSavedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      } catch (e) {
+        console.error('Failed to save to local storage:', e);
+      }
+    }
+
+    const printElement = document.getElementById('resume-print-sheet');
+    if (!printElement) {
+      window.print();
+      setIsExportingPDF(false);
+      return;
+    }
+
+    // 2. Try High-Fidelity Server-Side PDF Export (Puppeteer A4 Vector)
+    try {
+      const res = await fetch('/api/export-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          html: printElement.outerHTML,
+          title: cleanName,
+        }),
+      });
+
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        setDownloadSuccessMsg(`✓ Successfully downloaded ${fileName} to your device!`);
+        setTimeout(() => setDownloadSuccessMsg(null), 5000);
+        setIsExportingPDF(false);
+        return;
+      }
+    } catch (serverErr) {
+      console.warn('Server PDF generation failed, falling back to client-side canvas:', serverErr);
+    }
+
+    // 3. Client-Side jsPDF Fallback
+    try {
+      const originalTransform = printElement.style.transform;
+      printElement.style.transform = 'none';
+
+      const canvas = await html2canvas(printElement, {
+        scale: 2.2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        windowWidth: printElement.scrollWidth,
+        windowHeight: printElement.scrollHeight,
+      });
+
+      printElement.style.transform = originalTransform;
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true,
+      });
+
+      const pdfWidth = 210;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, Math.min(pdfHeight, 297));
+      
+      pdf.save(fileName);
+
+      setDownloadSuccessMsg(`✓ Successfully downloaded ${fileName} to your device!`);
+      setTimeout(() => setDownloadSuccessMsg(null), 5000);
+    } catch (err) {
+      console.warn('Direct PDF export canvas failed, fallback to native browser print:', err);
+      const originalTitle = document.title;
+      document.title = `${cleanName}_Resume_ATS`;
+      window.print();
+      setTimeout(() => {
+        document.title = originalTitle;
+      }, 1000);
+    } finally {
+      setIsExportingPDF(false);
+    }
   };
 
   const resumeData: ResumeData = {
@@ -374,267 +540,315 @@ ${skills.join(', ')}
     // 1-6: Executive & Fortune 500
     {
       id: 'classic_ats',
-      name: 'Executive Two-Column Standard',
+      name: 'Executive Leader Standard',
       tag: 'FORTUNE 500',
+      category: 'Executive & Finance',
       ats: '99% ATS',
       desc: 'Clean two-column split with tabular dates, categorized skills, and verified achievements grid.',
-      layout: 'two_column',
+      previewImg: '/images/templates/tpl-1.png',
     },
     {
       id: 'modern_executive',
-      name: 'Modern Executive Terracotta',
+      name: 'Agile Tech Architect',
       tag: 'YC FOUNDER',
+      category: 'Startups & YC',
       ats: '98% ATS',
       desc: 'Warm terracotta accent border, executive summary backdrop, and structured leadership cards.',
-      layout: 'terracotta_split',
+      previewImg: '/images/templates/tpl-2.png',
     },
     {
       id: 'navy_sidebar',
-      name: 'Midnight Slate Architecture',
+      name: 'ATS Match Check Standard',
       tag: 'STAFF / PRINCIPAL',
-      ats: '98% ATS',
+      category: 'Tech & AI',
+      ats: '99% ATS',
       desc: 'Deep slate navy headers, high-contrast subheadings, and dense system engineering layout.',
-      layout: 'slate_two_column',
+      previewImg: '/images/templates/tpl-3.png',
     },
     {
       id: 'navy_header',
-      name: 'Horizon Deep Navy Horizon',
+      name: 'Product & Project Leader',
       tag: 'ENTERPRISE LEAD',
+      category: 'Product & Design',
       ats: '97% ATS',
       desc: 'Top navy header banner with dual-column grid body and prominent technical credentials.',
-      layout: 'top_banner',
+      previewImg: '/images/templates/tpl-4.png',
     },
     {
       id: 'fortune500_single',
-      name: 'Wall Street Single Column Standard',
-      tag: 'WALL STREET',
+      name: 'Scarlett Anderson — CPA & Audit',
+      tag: 'FINANCE / CPA',
+      category: 'Executive & Finance',
       ats: '99% ATS',
       desc: 'Classic centered serif header with horizontal rules and maximum corporate parser compatibility.',
-      layout: 'single_column',
+      previewImg: '/images/templates/enhancv-extra-1.png',
     },
     {
       id: 'boardroom_serif',
-      name: 'Boardroom Executive Serif',
+      name: 'Isaac Hall — Global Director',
       tag: 'BOARD & ADVISOR',
+      category: 'Executive & Finance',
       ats: '98% ATS',
       desc: 'Refined serif typography with right-aligned tabular numerals and leadership highlights.',
-      layout: 'single_column',
+      previewImg: '/images/templates/enhancv-extra-2.png',
     },
 
     // 7-12: Tech & Systems Engineering
     {
       id: 'minimalist_tech',
-      name: 'Developer Monospace Terminal',
+      name: 'Elise Carter — Backend & ML',
       tag: 'TECH ARCHITECT',
-      ats: '97% ATS',
-      desc: 'Monospace terminal section tags, code syntax stack, and dense metrics formatting.',
-      layout: 'monospace',
+      category: 'Tech & AI',
+      ats: '98% ATS',
+      desc: 'Monospace terminal section tags, visual skills matrix chart, and dense metrics formatting.',
+      previewImg: '/images/templates/enhancv-extra-3.png',
     },
     {
       id: 'soft_green_pill',
-      name: 'Emerald Systems Engineering',
-      tag: 'AI / CLOUD INFRA',
+      name: 'Carrie Jones — Product Lead',
+      tag: 'PRODUCT / STRATEGY',
+      category: 'Product & Design',
       ats: '97% ATS',
       desc: 'Nordic emerald headers, clean divider borders, and categorized domain competencies.',
-      layout: 'emerald_split',
+      previewImg: '/images/templates/enhancv-extra-4.png',
     },
     {
       id: 'cyber_terminal',
-      name: 'Cyber Matrix Console',
-      tag: 'SECURITY / DEV',
-      ats: '96% ATS',
+      name: 'Maeve Delaney — Strategic Sourcing',
+      tag: 'OPERATIONS',
+      category: 'Executive & Finance',
+      ats: '97% ATS',
       desc: 'Deep dark slate console styling with bright emerald syntax highlights and terminal tags.',
-      layout: 'monospace',
+      previewImg: '/images/templates/enhancv-extra-5.png',
     },
     {
       id: 'cloud_architect',
-      name: 'AWS & Cloud Architect Standard',
-      tag: 'CLOUD / DEVOPS',
+      name: 'Ellen Johnson — Growth Marketing',
+      tag: 'MARKETING / TECH',
+      category: 'Startups & YC',
       ats: '98% ATS',
       desc: 'Sky blue accent geometry with structured infrastructure competencies and cloud metrics.',
-      layout: 'two_column',
+      previewImg: '/images/templates/enhancv-extra-6.png',
     },
     {
       id: 'rust_systems',
-      name: 'Rust & Low-Latency Core',
-      tag: 'SYSTEMS / RUST',
-      ats: '97% ATS',
+      name: 'Grace Jackson — Data Scientist',
+      tag: 'DATA / AI',
+      category: 'Tech & AI',
+      ats: '99% ATS',
       desc: 'Copper orange accent borders with dense monospace code tags and performance metrics.',
-      layout: 'left_accent',
+      previewImg: '/images/templates/enhancv-extra-7.png',
     },
     {
       id: 'ai_researcher',
-      name: 'DeepMind & OpenAI Research Paper',
-      tag: 'AI / RESEARCH',
+      name: 'Austin Adams — Business Dev Lead',
+      tag: 'ENTERPRISE B2B',
+      category: 'Executive & Finance',
       ats: '98% ATS',
       desc: 'Scholarly preprint typography with abstract summary box and publication pedigree.',
-      layout: 'two_column',
+      previewImg: '/images/templates/enhancv-extra-8.png',
     },
 
     // 13-18: YC Startups & High Growth
     {
       id: 'yellow_creative',
-      name: 'Amber Growth & Product Architect',
-      tag: 'PRODUCT / GROWTH',
-      ats: '96% ATS',
+      name: 'David Miller — Staff ML Engineer',
+      tag: 'AI / SYSTEMS',
+      category: 'Tech & AI',
+      ats: '99% ATS',
       desc: 'Warm amber section dividers and structured dual-column matrix for product innovators.',
-      layout: 'amber_split',
+      previewImg: '/images/templates/enhancv-extra-9.png',
     },
     {
       id: 'yc_founder_pitch',
-      name: 'YC Founder Fast-Track',
+      name: 'Elena Rostova — VP of Marketing',
       tag: 'STARTUP FOUNDER',
+      category: 'Startups & YC',
       ats: '98% ATS',
       desc: 'Punchy orange accents, prominent fundraising and traction milestones, and high-signal metrics.',
-      layout: 'left_accent',
+      previewImg: '/images/templates/enhancv-extra-10.png',
     },
     {
       id: 'stealth_scale',
-      name: 'Silicon Valley Stealth Seed',
-      tag: 'EARLY STAGE',
-      ats: '97% ATS',
+      name: 'Marcus Vance — Cloud Architect',
+      tag: 'CLOUD / DEVOPS',
+      category: 'Tech & AI',
+      ats: '98% ATS',
       desc: 'Deep violet accent banners with clean domain badges and rapid shipping highlights.',
-      layout: 'two_column',
+      previewImg: '/images/templates/enhancv-extra-11.png',
     },
     {
       id: 'fintech_lead',
-      name: 'Stripe & Ramp Fintech Protocol',
-      tag: 'FINTECH',
+      name: 'Sophia Chen — Biotech Director',
+      tag: 'BIOTECH / CLINICAL',
+      category: 'Executive & Finance',
       ats: '98% ATS',
       desc: 'Indigo top banner with tabular transaction metrics, ledger reconciliation, and high reliability.',
-      layout: 'top_banner',
+      previewImg: '/images/templates/enhancv-extra-12.png',
     },
     {
       id: 'crypto_web3',
-      name: 'Decentralized Protocol Engineer',
-      tag: 'CRYPTO / WEB3',
-      ats: '96% ATS',
+      name: 'Liam O’Connor — Cybersecurity',
+      tag: 'SECURITY / SOC',
+      category: 'Tech & AI',
+      ats: '97% ATS',
       desc: 'Electric indigo divider lines with smart contract security and consensus mechanisms.',
-      layout: 'two_column',
+      previewImg: '/images/templates/enhancv-extra-13.png',
     },
     {
       id: 'saas_operator',
-      name: 'B2B SaaS Growth & Revenue Lead',
-      tag: 'B2B SAAS',
+      name: 'Rachel Green — Head of UX & Design',
+      tag: 'UX / PRODUCT',
+      category: 'Product & Design',
       ats: '97% ATS',
       desc: 'Royal sapphire blue cards with ARR expansion, retention, and enterprise sales highlights.',
-      layout: 'two_column',
+      previewImg: '/images/templates/enhancv-extra-14.png',
     },
 
     // 19-24: Editorial & Strategy
     {
       id: 'right_sidebar',
-      name: 'Burgundy Leadership Standard',
-      tag: 'VP & DIRECTOR',
-      ats: '96% ATS',
+      name: 'Alexander Wright — Quant Research',
+      tag: 'QUANT / HEDGE FUND',
+      category: 'Executive & Finance',
+      ats: '99% ATS',
       desc: 'Deep burgundy executive headers, pedigree split, and high-impact accomplishment bullets.',
-      layout: 'burgundy_split',
+      previewImg: '/images/templates/enhancv-extra-15.png',
     },
     {
       id: 'mckinsey_consulting',
-      name: 'Global Strategy & Management',
-      tag: 'MCKINSEY / BCG',
+      name: 'Claire Dupont — Corporate Counsel',
+      tag: 'LEGAL & STRATEGY',
+      category: 'Academic & Strategy',
       ats: '99% ATS',
       desc: 'Rigorous single-column case structure with quantitative business impacts and C-suite advisory.',
-      layout: 'single_column',
+      previewImg: '/images/templates/enhancv-extra-16.png',
     },
     {
       id: 'swiss_grid',
       name: 'Helvetica Swiss Bauhaus Grid',
       tag: 'SWISS DESIGN',
+      category: 'Product & Design',
       ats: '98% ATS',
       desc: 'Ultra-clean black & red geometric alignment inspired by international typographic style.',
-      layout: 'two_column',
+      previewImg: '/images/templates/enhancv-1.png',
     },
     {
       id: 'oxford_academic',
       name: 'Cambridge & Oxford Fellow',
       tag: 'ACADEMIC',
+      category: 'Academic & Strategy',
       ats: '99% ATS',
       desc: 'Timeless scholarly typography with honorable distinctions, credentials, and fellowships.',
-      layout: 'single_column',
+      previewImg: '/images/templates/enhancv-2.png',
     },
     {
       id: 'tokyo_minimal',
       name: 'Tokyo Minimalist Zen',
       tag: 'MINIMALIST',
+      category: 'Product & Design',
       ats: '98% ATS',
       desc: 'Subtle hairline dividers, generous white space balance, and muted charcoal hierarchy.',
-      layout: 'two_column',
+      previewImg: '/images/templates/enhancv-3.png',
     },
     {
       id: 'nordic_clean',
       name: 'Scandinavian Frost Clean',
       tag: 'NORDIC TECH',
+      category: 'Tech & AI',
       ats: '97% ATS',
       desc: 'Frost blue accents with clean border dividers and functional human-centric layout.',
-      layout: 'two_column',
+      previewImg: '/images/templates/enhancv-4.png',
     },
 
-    // 25-30: Specialized & Creative
+    // 25-32: Specialized & High Demand Roles
     {
       id: 'neo_brutalist',
       name: 'Neo-Brutalist Engineering',
       tag: 'CREATIVE TECH',
+      category: 'Product & Design',
       ats: '95% ATS',
       desc: 'Bold black border boxes with punchy drop shadows and high-contrast yellow headers.',
-      layout: 'neo_brutalist',
+      previewImg: '/images/templates/enhancv-5.png',
     },
     {
       id: 'coral_modern',
       name: 'Coral Sunset Product Designer',
       tag: 'DESIGN LEAD',
+      category: 'Product & Design',
       ats: '96% ATS',
       desc: 'Warm rose coral accents with modern card backdrops and design system highlights.',
-      layout: 'left_accent',
+      previewImg: '/images/templates/enhancv-6.png',
     },
     {
       id: 'teal_innovator',
       name: 'Deep Teal Biotech & Hardware',
       tag: 'BIO / HARDWARE',
+      category: 'Tech & AI',
       ats: '97% ATS',
       desc: 'Rich teal headers with dual-column precision engineering and patent accomplishments.',
-      layout: 'two_column',
+      previewImg: '/images/templates/enhancv-7.png',
     },
     {
       id: 'graphite_compact',
       name: 'Dense 1-Page High-Density',
       tag: '10+ YRS EXP',
+      category: 'Executive & Finance',
       ats: '99% ATS',
       desc: 'Maximum information density engineered to fit comprehensive 10-year careers onto 1 page.',
-      layout: 'compact',
+      previewImg: '/images/templates/enhancv-8.png',
     },
     {
       id: 'split_duo',
       name: 'Balanced Symmetrical Duo',
       tag: 'FULL STACK',
+      category: 'Tech & AI',
       ats: '96% ATS',
       desc: 'Clean cobalt blue accents with structured balance between history and technical skills.',
-      layout: 'two_column',
+      previewImg: '/images/templates/template-1.png',
     },
     {
       id: 'prestige_gold',
       name: 'Executive VP & Chief Officer Gold',
       tag: 'C-SUITE EXEC',
+      category: 'Executive & Finance',
       ats: '97% ATS',
       desc: 'Dark obsidian top banner with refined warm gold accents for executive candidates.',
-      layout: 'top_banner',
+      previewImg: '/images/templates/template-2.png',
+    },
+    {
+      id: 'ai_ml_lead',
+      name: 'PyTorch ML & Autonomous Swarms',
+      tag: 'AI / LLM LEAD',
+      category: 'Tech & AI',
+      ats: '99% ATS',
+      desc: 'Advanced machine learning systems with distributed training throughput metrics.',
+      previewImg: '/images/templates/template-3.png',
+    },
+    {
+      id: 'quantum_research',
+      name: 'Quantum & Hardware Researcher',
+      tag: 'QUANTUM R&D',
+      category: 'Academic & Strategy',
+      ats: '98% ATS',
+      desc: 'Specialized layout for hardware engineers, quantum algorithms, and experimental physics.',
+      previewImg: '/images/templates/tpl-3.png',
     },
   ];
 
   return (
-    <div className="h-screen flex flex-col bg-[#FAF6F0] overflow-hidden select-none">
+    <div className="h-screen flex flex-col bg-slate-100/60 overflow-hidden select-none">
       {/* Top Builder Toolbar */}
-      <header className="h-16 bg-white border-b border-[#EAE3D5] px-6 flex items-center justify-between shrink-0 no-print">
+      <header className="h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 px-6 flex items-center justify-between shrink-0 no-print">
         <div className="flex items-center gap-3">
-          <span className="font-extrabold text-sm text-[#231F1D] hidden sm:inline">
+          <span className="font-extrabold text-sm text-slate-900 hidden sm:inline">
             {personalInfo.fullName ? `${personalInfo.fullName} — Resume` : 'New Blank Resume'}
           </span>
 
           <Button
             variant="secondary"
             size="sm"
-            leftIcon={<Layout className="w-3.5 h-3.5 text-[#C85A32]" />}
+            leftIcon={<Layout className="w-3.5 h-3.5 text-indigo-600" />}
             onClick={() => setIsTemplateModalOpen(true)}
           >
             Change Template ({selectedTemplate})
@@ -643,7 +857,7 @@ ${skills.join(', ')}
           <Button
             variant="tertiary"
             size="sm"
-            leftIcon={<RotateCcw className="w-3.5 h-3.5 text-gray-500" />}
+            leftIcon={<RotateCcw className="w-3.5 h-3.5 text-slate-500" />}
             onClick={handleClearData}
             title="Clear all fields to start completely fresh"
           >
@@ -654,7 +868,7 @@ ${skills.join(', ')}
             <Button
               variant="tertiary"
               size="sm"
-              leftIcon={<Sparkles className="w-3.5 h-3.5 text-[#C85A32]" />}
+              leftIcon={<Sparkles className="w-3.5 h-3.5 text-indigo-600" />}
               onClick={handleLoadDemo}
             >
               Load Demo Data
@@ -663,39 +877,68 @@ ${skills.join(', ')}
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 bg-[#FAF6F0] p-1 rounded-full border border-[#EAE3D5]">
+          {/* Local Storage Auto-Save Badge */}
+          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 rounded-full border border-slate-200 text-[10.5px] font-bold text-slate-600">
+            <Save className="w-3 h-3 text-teal-600" />
+            <span>Auto-saved locally ({lastSavedTime})</span>
+          </div>
+
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-full border border-slate-200">
             <button
               onClick={() => setZoomLevel((z) => Math.max(70, z - 10))}
-              className="p-1 hover:bg-white rounded-full text-[#786F68]"
+              className="p-1 hover:bg-white rounded-full text-slate-600 cursor-pointer"
               title="Zoom Out"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
-            <span className="text-[11px] font-bold text-[#231F1D] px-1">{zoomLevel}%</span>
+            <span className="text-[11px] font-bold text-slate-900 px-1">{zoomLevel}%</span>
             <button
               onClick={() => setZoomLevel((z) => Math.min(130, z + 10))}
-              className="p-1 hover:bg-white rounded-full text-[#786F68]"
+              className="p-1 hover:bg-white rounded-full text-slate-600 cursor-pointer"
               title="Zoom In"
             >
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          <Button variant="secondary" size="sm" onClick={() => handleDownloadLocalFile('txt')} leftIcon={<FileText className="w-3.5 h-3.5 text-[#C85A32]" />}>
-            Download .TXT
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => handleDownloadLocalFile('json')}
+            leftIcon={<Save className="w-3.5 h-3.5 text-indigo-600" />}
+            title="Save raw JSON resume file to your device"
+          >
+            Save .JSON
           </Button>
 
-          <Button variant="primary" size="sm" onClick={handleExportPDF} leftIcon={<Download className="w-4 h-4" />}>
-            Export ATS PDF
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setIsExportPreviewModalOpen(true)}
+            leftIcon={<Download className="w-4 h-4 text-white" />}
+          >
+            Preview & Export PDF
           </Button>
         </div>
       </header>
 
+      {/* Floating Download Success Toast */}
+      {downloadSuccessMsg && (
+        <div className="fixed top-20 right-8 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-teal-500/40 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+          <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0" />
+          <div className="flex flex-col">
+            <span className="text-xs font-bold">{downloadSuccessMsg}</span>
+            <span className="text-[10px] text-slate-300">File is saved in your device Downloads folder & Local Storage</span>
+          </div>
+          <button onClick={() => setDownloadSuccessMsg(null)} className="ml-2 text-slate-400 hover:text-white text-xs">✕</button>
+        </div>
+      )}
+
       {/* 3-Zone Full Viewport Layout */}
       <div className="flex-1 flex min-h-0">
         {/* Zone 1: Left Section List Navigation */}
-        <aside className="w-64 bg-[#FAF6F0] border-r border-[#EAE3D5] flex flex-col p-3 gap-1 overflow-y-auto shrink-0 select-none no-print">
-          <span className="px-3 py-2 text-[11px] font-bold text-[#786F68] uppercase tracking-wider">
+        <aside className="w-64 bg-slate-50/80 border-r border-slate-200 flex flex-col p-3 gap-1 overflow-y-auto shrink-0 select-none no-print">
+          <span className="px-3 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
             Resume Sections
           </span>
           {sectionsList.map((sec) => {
@@ -705,17 +948,17 @@ ${skills.join(', ')}
               <button
                 key={sec.id}
                 onClick={() => setActiveSection(sec.id)}
-                className={`flex items-center justify-between px-3.5 py-2.5 rounded-full text-xs font-bold transition-all ${
-                  isActive ? 'bg-[#C85A32] text-white shadow-xs' : 'text-[#4A423C] hover:bg-white'
+                className={`flex items-center justify-between px-3.5 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  isActive ? 'bg-gradient-to-r from-[#008CA0] via-[#2E75C4] to-[#5039F6] text-white shadow-xs' : 'text-slate-700 hover:bg-white'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <GripVertical className={`w-3.5 h-3.5 ${isActive ? 'text-white/70' : 'text-gray-300'}`} />
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#786F68]'}`} />
+                  <GripVertical className={`w-3.5 h-3.5 ${isActive ? 'text-white/70' : 'text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
                   <span>{sec.title}</span>
                 </div>
                 {typeof sec.count === 'number' && (
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-white text-gray-700'}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-white text-slate-700 border border-slate-200'}`}>
                     {sec.count}
                   </span>
                 )}
@@ -725,10 +968,10 @@ ${skills.join(', ')}
         </aside>
 
         {/* Zone 2: Center Active Section Form */}
-        <main className="flex-1 overflow-y-auto p-6 bg-white border-r border-[#EAE3D5] flex flex-col gap-6 no-print">
+        <main className="flex-1 overflow-y-auto p-6 bg-white border-r border-slate-200 flex flex-col gap-6 no-print">
           {activeSection === 'personal_info' && (
             <div className="flex flex-col gap-5 max-w-2xl">
-              <h2 className="text-lg font-extrabold text-[#231F1D] border-b border-[#EAE3D5] pb-2">Personal Details</h2>
+              <h2 className="text-lg font-extrabold text-slate-900 border-b border-slate-200 pb-2">Personal Details</h2>
               <div className="grid grid-cols-2 gap-4">
                 <Input placeholder="John Doe" label="Full Name" value={personalInfo.fullName} onChange={(e) => setPersonalInfo({ ...personalInfo, fullName: e.target.value })} />
                 <Input placeholder="john@example.com" label="Email Address" value={personalInfo.email} onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })} />
@@ -868,7 +1111,7 @@ ${skills.join(', ')}
                           variant="secondary"
                           size="sm"
                           isLoading={isEnhancing === `${exp.id}-${bIdx}`}
-                          leftIcon={<Sparkles className="w-3.5 h-3.5 text-[#C85A32]" />}
+                          leftIcon={<Sparkles className="w-3.5 h-3.5 text-[#048BA2]" />}
                           onClick={() => handleEnhanceBullet(exp.id, bIdx, b)}
                           title="Enhance bullet with AI metrics"
                         >
@@ -881,7 +1124,7 @@ ${skills.join(', ')}
                         const updated = [...exp.bullets, ''];
                         setExperiences(experiences.map((x) => (x.id === exp.id ? { ...x, bullets: updated } : x)));
                       }}
-                      className="text-xs font-bold text-[#C85A32] hover:underline self-start mt-1"
+                      className="text-xs font-bold text-[#048BA2] hover:underline self-start mt-1 cursor-pointer"
                     >
                       + Add Bullet Line
                     </button>
@@ -981,10 +1224,10 @@ ${skills.join(', ')}
                 {skills.map((sk, idx) => (
                   <span
                     key={idx}
-                    className="px-3 py-1.5 bg-[#FDF4F0] border border-[#F6DCD1] text-[#C85A32] text-xs font-bold rounded-full flex items-center gap-2"
+                    className="px-3 py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold rounded-full flex items-center gap-2"
                   >
                     {sk}
-                    <button onClick={() => handleRemoveSkill(sk)} className="text-red-400 hover:text-red-600 font-normal">
+                    <button onClick={() => handleRemoveSkill(sk)} className="text-indigo-400 hover:text-indigo-700 font-normal cursor-pointer">
                       ×
                     </button>
                   </span>
@@ -995,12 +1238,12 @@ ${skills.join(', ')}
         </main>
 
         {/* Zone 3: Right Live Printable Preview */}
-        <section className="flex-1 bg-[#FAF6F0] flex flex-col overflow-hidden">
+        <section className="flex-1 bg-slate-100/60 flex flex-col overflow-hidden">
           {/* Quick Template Switcher Ribbon Bar */}
-          <div className="bg-white border-b border-[#EAE3D5] px-4 py-2 flex items-center justify-between gap-3 shrink-0 shadow-2xs no-print">
+          <div className="bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between gap-3 shrink-0 shadow-2xs no-print">
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-              <span className="text-[10.5px] font-black text-gray-500 uppercase tracking-wider flex items-center gap-1 shrink-0 mr-1">
-                <Layout className="w-3.5 h-3.5 text-[#C85A32]" /> Templates:
+              <span className="text-[10.5px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1 shrink-0 mr-1">
+                <Layout className="w-3.5 h-3.5 text-indigo-600" /> Templates:
               </span>
               {[
                 { id: 'classic_ats', label: 'Classic Single-Column' },
@@ -1013,10 +1256,10 @@ ${skills.join(', ')}
                 <button
                   key={tpl.id}
                   onClick={() => setSelectedTemplate(tpl.id as TemplateId)}
-                  className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border transition-all shrink-0 ${
+                  className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border transition-all shrink-0 cursor-pointer ${
                     selectedTemplate === tpl.id
-                      ? 'bg-[#C85A32] text-white border-[#C85A32] shadow-xs'
-                      : 'bg-[#FAF6F0] text-gray-700 border-[#EAE3D5] hover:border-[#C85A32]/40 hover:bg-white'
+                      ? 'bg-[#048BA2] text-white border-[#048BA2] shadow-xs'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#048BA2] hover:bg-white'
                   }`}
                 >
                   {tpl.label}
@@ -1024,7 +1267,7 @@ ${skills.join(', ')}
               ))}
               <button
                 onClick={() => setIsTemplateModalOpen(true)}
-                className="px-2.5 py-1 text-[11px] font-bold text-[#C85A32] bg-[#FDF4F0] border border-[#F6DCD1] hover:bg-[#F6DCD1] rounded-lg transition-all shrink-0 flex items-center gap-1"
+                className="px-2.5 py-1 text-[11px] font-bold text-[#048BA2] bg-[#E6F5F8] border border-[#048BA2]/30 hover:bg-[#E6F5F8]/80 rounded-lg transition-all shrink-0 flex items-center gap-1 cursor-pointer"
               >
                 Browse All 40+ Templates ▾
               </button>
@@ -1042,186 +1285,249 @@ ${skills.join(', ')}
         </section>
       </div>
 
-      {/* Interactive Resume Templates Gallery Modal */}
+      {/* Interactive 30+ Resume Templates Gallery Modal with Real Photos & Search */}
       <Modal
         isOpen={isTemplateModalOpen}
         onClose={() => setIsTemplateModalOpen(false)}
         title="Select Professional Resume Template Design"
         maxWidth="xl"
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-h-[75vh] overflow-y-auto p-1">
-          {templatesGallery.map((tpl) => (
-            <div
-              key={tpl.id}
-              onClick={() => {
-                setSelectedTemplate(tpl.id as TemplateId);
-                setIsTemplateModalOpen(false);
-              }}
-              className={`group relative bg-white rounded-2xl border p-4 flex flex-col justify-between gap-3.5 transition-all duration-200 cursor-pointer shadow-xs hover:shadow-xl ${
-                selectedTemplate === tpl.id
-                  ? 'border-[#C85A32] ring-2 ring-[#C85A32]/30 shadow-md'
-                  : 'border-[#EAE3D5] hover:border-[#C85A32]/60'
-              }`}
-            >
-              {/* Header Badges */}
-              <div className="flex justify-between items-center gap-1">
-                <span className="text-[9px] font-black uppercase text-[#C85A32] bg-[#FDF4F0] border border-[#F6DCD1] px-2 py-0.5 rounded-full">
-                  ★ {tpl.tag}
-                </span>
-                <span className="text-[9px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full">
-                  {tpl.ats}
-                </span>
-              </div>
-
-              {/* Graphical Layout Mini Preview Thumbnail */}
-              <div className="h-32 bg-[#FAF6F0] rounded-xl border border-[#EAE3D5] p-2.5 flex flex-col gap-1.5 overflow-hidden relative shadow-2xs group-hover:border-[#C85A32]/40 transition-colors">
-                {tpl.id === 'classic_ats' && (
-                  <div className="flex flex-col gap-1 h-full">
-                    {/* Centered Top Header */}
-                    <div className="flex flex-col items-center gap-0.5 pb-1 border-b border-gray-900">
-                      <div className="w-1/2 h-1.5 bg-gray-900 rounded-full" />
-                      <div className="w-3/4 h-0.5 bg-gray-400 rounded-full" />
-                    </div>
-                    {/* Summary */}
-                    <div className="w-full h-0.5 bg-gray-300 rounded mt-0.5" />
-                    {/* Two-Column Split Body */}
-                    <div className="grid grid-cols-12 gap-1 mt-0.5 flex-1">
-                      <div className="col-span-7 flex flex-col gap-1 border-r border-gray-200 pr-1">
-                        <div className="w-2/3 h-0.5 bg-gray-800 rounded" />
-                        <div className="w-full h-0.5 bg-gray-300 rounded" />
-                        <div className="w-4/5 h-0.5 bg-gray-300 rounded" />
-                        <div className="w-full h-0.5 bg-gray-300 rounded" />
-                      </div>
-                      <div className="col-span-5 flex flex-col gap-1">
-                        <div className="w-full h-0.5 bg-gray-800 rounded" />
-                        <div className="w-full h-0.5 bg-gray-300 rounded" />
-                        <div className="w-3/4 h-0.5 bg-gray-300 rounded" />
-                      </div>
-                    </div>
-                    {/* Bottom Certifications Rule */}
-                    <div className="w-full border-t border-gray-300 pt-0.5 flex justify-between">
-                      <div className="w-2/5 h-0.5 bg-gray-400 rounded" />
-                      <div className="w-2/5 h-0.5 bg-gray-400 rounded" />
-                    </div>
-                  </div>
-                )}
-
-                {tpl.id === 'modern_executive' && (
-                  <div className="flex flex-col gap-1.5 h-full">
-                    <div className="w-full bg-[#FDF4F0] border-l-2 border-[#C85A32] p-1 rounded-r flex flex-col gap-0.5">
-                      <div className="w-1/3 h-1 bg-[#C85A32] rounded" />
-                      <div className="w-1/2 h-0.5 bg-gray-400 rounded" />
-                    </div>
-                    <div className="w-full h-1 bg-gray-300 rounded" />
-                    <div className="w-4/5 h-1 bg-gray-300 rounded" />
-                    <div className="w-2/3 h-1 bg-gray-300 rounded" />
-                  </div>
-                )}
-
-                {tpl.id === 'navy_sidebar' && (
-                  <div className="grid grid-cols-12 h-full gap-1 -m-2.5">
-                    <div className="col-span-4 bg-[#0F172A] p-1.5 flex flex-col gap-1">
-                      <div className="w-full h-1 bg-sky-400 rounded" />
-                      <div className="w-2/3 h-0.5 bg-slate-400 rounded" />
-                      <div className="w-full h-0.5 bg-slate-600 rounded mt-1" />
-                      <div className="w-full h-0.5 bg-slate-600 rounded" />
-                    </div>
-                    <div className="col-span-8 p-1.5 flex flex-col gap-1">
-                      <div className="w-1/2 h-1 bg-gray-800 rounded" />
-                      <div className="w-full h-0.5 bg-gray-300 rounded" />
-                      <div className="w-4/5 h-0.5 bg-gray-300 rounded" />
-                      <div className="w-full h-0.5 bg-gray-300 rounded" />
-                    </div>
-                  </div>
-                )}
-
-                {tpl.id === 'navy_header' && (
-                  <div className="flex flex-col h-full -m-2.5">
-                    <div className="bg-[#0B1E36] p-2 flex flex-col items-center gap-0.5 text-center">
-                      <div className="w-1/3 h-1 bg-white rounded" />
-                      <div className="w-1/2 h-0.5 bg-sky-300 rounded" />
-                    </div>
-                    <div className="p-2 flex flex-col gap-1">
-                      <div className="w-1/3 h-1 bg-gray-700 rounded" />
-                      <div className="w-full h-0.5 bg-gray-300 rounded" />
-                      <div className="w-4/5 h-0.5 bg-gray-300 rounded" />
-                    </div>
-                  </div>
-                )}
-
-                {tpl.id === 'minimalist_tech' && (
-                  <div className="flex flex-col gap-1 h-full font-mono bg-zinc-900 -m-2.5 p-2 text-[6px] text-zinc-300">
-                    <div className="text-emerald-400 font-bold">// DEV_EXEC</div>
-                    <div className="w-3/4 h-0.5 bg-zinc-700 rounded" />
-                    <div className="w-full h-0.5 bg-zinc-700 rounded" />
-                    <div className="w-2/3 h-0.5 bg-zinc-700 rounded" />
-                  </div>
-                )}
-
-                {tpl.id === 'soft_green_pill' && (
-                  <div className="flex flex-col gap-1 h-full">
-                    <div className="flex justify-between items-center pb-1 border-b border-emerald-200">
-                      <div className="w-1/3 h-1 bg-gray-800 rounded" />
-                      <div className="w-1/4 h-1 bg-emerald-200 rounded-full" />
-                    </div>
-                    <div className="w-full h-0.5 bg-emerald-100 rounded" />
-                    <div className="w-5/6 h-0.5 bg-gray-300 rounded" />
-                    <div className="w-4/5 h-0.5 bg-gray-300 rounded" />
-                  </div>
-                )}
-
-                {tpl.id === 'right_sidebar' && (
-                  <div className="grid grid-cols-12 h-full gap-1 -m-2.5">
-                    <div className="col-span-8 p-1.5 flex flex-col gap-1">
-                      <div className="w-1/2 h-1 bg-gray-800 rounded" />
-                      <div className="w-full h-0.5 bg-gray-300 rounded" />
-                      <div className="w-4/5 h-0.5 bg-gray-300 rounded" />
-                    </div>
-                    <div className="col-span-4 bg-[#0F2537] p-1.5 flex flex-col gap-1">
-                      <div className="w-full h-1 bg-sky-400 rounded" />
-                      <div className="w-full h-0.5 bg-slate-600 rounded" />
-                    </div>
-                  </div>
-                )}
-
-                {tpl.id === 'yellow_creative' && (
-                  <div className="grid grid-cols-12 h-full gap-1 -m-2.5">
-                    <div className="col-span-4 bg-[#FAF8ED] p-1.5 flex flex-col items-center gap-1 border-r border-[#EBE5CE]">
-                      <div className="w-4 h-4 rounded-full bg-amber-400" />
-                      <div className="w-full h-0.5 bg-amber-800 rounded" />
-                    </div>
-                    <div className="col-span-8 p-1.5 flex flex-col gap-1">
-                      <div className="w-1/2 h-1 bg-gray-800 rounded" />
-                      <div className="w-full h-0.5 bg-gray-300 rounded" />
-                      <div className="w-4/5 h-0.5 bg-gray-300 rounded" />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Text Meta */}
-              <div className="flex flex-col gap-0.5">
-                <span className="text-xs font-bold text-[#231F1D] flex items-center justify-between">
-                  {tpl.name}
-                  {selectedTemplate === tpl.id && (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  )}
-                </span>
-                <span className="text-[10px] text-[#786F68] leading-tight line-clamp-2">{tpl.desc}</span>
-              </div>
-
-              {/* Action Button */}
-              <div
-                className={`w-full py-1.5 text-xs font-bold rounded-xl text-center shadow-xs transition-all ${
-                  selectedTemplate === tpl.id
-                    ? 'bg-[#C85A32] text-white'
-                    : 'bg-[#FAF6F0] text-[#231F1D] group-hover:bg-[#C85A32] group-hover:text-white'
-                }`}
-              >
-                {selectedTemplate === tpl.id ? 'Active Template' : 'Use Template'}
-              </div>
+        <div className="flex flex-col gap-4 max-h-[80vh] overflow-hidden p-1">
+          {/* Header Controls: Categories & Search Bar */}
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between border-b border-slate-200 pb-3 shrink-0">
+            {/* Category Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+              {[
+                { id: 'All', label: 'All Templates (32)' },
+                { id: 'Executive & Finance', label: 'Executive & Finance' },
+                { id: 'Tech & AI', label: 'Tech & AI' },
+                { id: 'Product & Design', label: 'Product & Design' },
+                { id: 'Startups & YC', label: 'Startups & YC' },
+                { id: 'Academic & Strategy', label: 'Academic & Strategy' },
+              ].map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setTemplateCategory(cat.id)}
+                  className={`px-3 py-1 text-xs font-bold rounded-xl border transition-all shrink-0 cursor-pointer ${
+                    templateCategory === cat.id
+                      ? 'bg-[#048BA2] text-white border-[#048BA2] shadow-xs'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#048BA2] hover:bg-white'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
             </div>
-          ))}
+
+            {/* Keyword Search */}
+            <div className="relative shrink-0 sm:w-64">
+              <input
+                type="text"
+                value={templateSearchQuery}
+                onChange={(e) => setTemplateSearchQuery(e.target.value)}
+                placeholder="Search by role or style..."
+                className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#048BA2] focus:bg-white"
+              />
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+              {templateSearchQuery && (
+                <button
+                  onClick={() => setTemplateSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 32+ Real Photographic Template Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto pr-1 flex-1">
+            {templatesGallery
+              .filter((tpl) => {
+                const matchesCat = templateCategory === 'All' || tpl.category === templateCategory;
+                const matchesSearch =
+                  !templateSearchQuery ||
+                  tpl.name.toLowerCase().includes(templateSearchQuery.toLowerCase()) ||
+                  tpl.tag.toLowerCase().includes(templateSearchQuery.toLowerCase()) ||
+                  tpl.desc.toLowerCase().includes(templateSearchQuery.toLowerCase());
+                return matchesCat && matchesSearch;
+              })
+              .map((tpl) => (
+                <div
+                  key={tpl.id}
+                  onClick={() => {
+                    setSelectedTemplate(tpl.id as TemplateId);
+                    setIsTemplateModalOpen(false);
+                  }}
+                  className={`group relative bg-white rounded-2xl border p-3 flex flex-col justify-between gap-3 transition-all duration-200 cursor-pointer shadow-xs hover:shadow-xl ${
+                    selectedTemplate === tpl.id
+                      ? 'border-[#048BA2] ring-2 ring-[#048BA2]/40 shadow-md'
+                      : 'border-slate-200 hover:border-[#048BA2]'
+                  }`}
+                >
+                  {/* Header Badges */}
+                  <div className="flex justify-between items-center gap-1">
+                    <span className="text-[9px] font-black uppercase text-[#048BA2] bg-[#E6F5F8] border border-[#048BA2]/30 px-2 py-0.5 rounded-full truncate max-w-[120px]">
+                      ★ {tpl.tag}
+                    </span>
+                    <span className="text-[9px] font-extrabold text-teal-800 bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded-full shrink-0">
+                      {tpl.ats}
+                    </span>
+                  </div>
+
+                  {/* REAL PHOTOGRAPHIC TEMPLATE PREVIEW */}
+                  <div className="h-44 w-full bg-slate-50 rounded-xl border border-slate-100 overflow-hidden relative shadow-2xs group-hover:shadow-md transition-all">
+                    <img
+                      src={tpl.previewImg}
+                      alt={tpl.name}
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+
+                    {/* Hover Overlay Button */}
+                    <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2 backdrop-blur-[2px]">
+                      <span className="px-3 py-1.5 bg-[#048BA2] text-white text-[11px] font-black rounded-lg shadow-md">
+                        Select Template
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Text Meta */}
+                  <div className="flex flex-col gap-0.5 text-left">
+                    <span className="text-xs font-bold text-slate-900 flex items-center justify-between">
+                      <span className="truncate">{tpl.name}</span>
+                      {selectedTemplate === tpl.id && (
+                        <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 ml-1" />
+                      )}
+                    </span>
+                    <span className="text-[10px] text-slate-500 leading-tight line-clamp-2">{tpl.desc}</span>
+                  </div>
+
+                  {/* Action Button */}
+                  <div
+                    className={`w-full py-1.5 text-xs font-bold rounded-xl text-center shadow-xs transition-all ${
+                      selectedTemplate === tpl.id
+                        ? 'bg-[#048BA2] text-white'
+                        : 'bg-slate-100 text-slate-800 group-hover:bg-[#048BA2] group-hover:text-white'
+                    }`}
+                  >
+                    {selectedTemplate === tpl.id ? 'Active Template' : 'Use Template'}
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      </Modal>
+
+      {/* Interactive PDF Export & Vector Print Preview Modal */}
+      <Modal
+        isOpen={isExportPreviewModalOpen}
+        onClose={() => setIsExportPreviewModalOpen(false)}
+        title="Resume Export & Print Preview"
+        maxWidth="4xl"
+      >
+        <div className="flex flex-col gap-4 max-h-[85vh] overflow-hidden p-1">
+          {/* Top Control Bar */}
+          <div className="bg-[#E6F5F8]/60 border border-[#048BA2]/20 rounded-2xl p-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 shrink-0 shadow-2xs">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-black text-slate-900">
+                  {personalInfo.fullName ? personalInfo.fullName.trim().replace(/\s+/g, '_') : 'Candidate'}_Resume_ATS.pdf
+                </span>
+                <span className="text-[9px] font-black uppercase text-teal-800 bg-teal-100 border border-teal-300 px-2 py-0.5 rounded-full">
+                  100% ATS Vector
+                </span>
+              </div>
+              <span className="text-[11px] text-slate-500 mt-0.5">
+                Standard A4 (210 × 297 mm) • Native crisp typography • Saved in Downloads & Local Storage
+              </span>
+            </div>
+
+            {/* Modal Controls & Action Buttons */}
+            <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+              {/* Preview Scale Zoom Bar */}
+              <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 mr-1">
+                {[
+                  { label: '50%', value: 50 },
+                  { label: '65% (Fit)', value: 65 },
+                  { label: '80%', value: 80 },
+                  { label: '100%', value: 100 },
+                ].map((z) => (
+                  <button
+                    key={z.value}
+                    onClick={() => setPreviewModalZoom(z.value)}
+                    className={`px-2 py-0.5 text-[10.5px] font-bold rounded-lg transition-all cursor-pointer ${
+                      previewModalZoom === z.value
+                        ? 'bg-[#048BA2] text-white shadow-2xs'
+                        : 'text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    {z.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* 1. Direct PDF File Download (Primary) */}
+              <Button
+                variant="primary"
+                size="sm"
+                disabled={isExportingPDF}
+                onClick={handleExportPDF}
+                leftIcon={
+                  isExportingPDF ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  ) : (
+                    <Download className="w-4 h-4 text-white" />
+                  )
+                }
+                className="shadow-md"
+              >
+                {isExportingPDF ? 'Downloading PDF...' : 'Download PDF File'}
+              </Button>
+
+              {/* 2. Native Print / Vector PDF Option */}
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  const cleanName = personalInfo.fullName
+                    ? personalInfo.fullName.replace(/[^a-zA-Z0-9_\s-]/g, '').trim().replace(/\s+/g, '_')
+                    : 'Candidate';
+                  const originalTitle = document.title;
+                  document.title = `${cleanName}_Resume_ATS`;
+                  window.print();
+                  setTimeout(() => {
+                    document.title = originalTitle;
+                  }, 1000);
+                }}
+                leftIcon={<FileText className="w-3.5 h-3.5 text-indigo-600" />}
+              >
+                Print / Save
+              </Button>
+
+              {/* 3. JSON Backup */}
+              <Button
+                variant="tertiary"
+                size="sm"
+                onClick={() => handleDownloadLocalFile('json')}
+                leftIcon={<Save className="w-3.5 h-3.5 text-slate-600" />}
+                title="Save .JSON file"
+              >
+                Save .JSON
+              </Button>
+            </div>
+          </div>
+
+          {/* Full Centered A4 Scaled Preview Container */}
+          <div className="flex-1 overflow-y-auto bg-slate-200/70 rounded-2xl p-4 sm:p-8 flex justify-center items-start border border-slate-200 min-h-[500px]">
+            <div className="shadow-2xl rounded-sm overflow-hidden bg-white">
+              <ResumeTemplateRenderer
+                templateId={selectedTemplate}
+                data={resumeData}
+                zoomLevel={previewModalZoom}
+              />
+            </div>
+          </div>
         </div>
       </Modal>
     </div>

@@ -40,7 +40,7 @@ export const Tabs: React.FC<TabsProps> = ({
               className={clsx(
                 'pb-3 pt-1 text-sm font-medium transition-all flex items-center gap-2 border-b-2 select-none',
                 isActive
-                  ? 'border-[#4F46E5] text-[#4F46E5]'
+                  ? 'border-[#048BA2] text-[#048BA2]'
                   : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
               )}
             >
@@ -50,7 +50,7 @@ export const Tabs: React.FC<TabsProps> = ({
                 <span
                   className={clsx(
                     'px-1.5 py-0.5 text-xs rounded-full font-semibold',
-                    isActive ? 'bg-indigo-50 text-[#4F46E5]' : 'bg-gray-100 text-gray-600'
+                    isActive ? 'bg-[#E6F5F8] text-[#048BA2]' : 'bg-gray-100 text-gray-600'
                   )}
                 >
                   {tab.count}

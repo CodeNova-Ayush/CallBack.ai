@@ -1,3 +1,11 @@
+/**
+ * ============================================================================
+ * 🤖 API ROUTE: /api/agent/[resumeId]/chat
+ * ============================================================================
+ * Handles recruiter conversational queries with candidate's Living Agent.
+ * Returns grounded response + cited source sections.
+ */
+
 import { NextResponse } from 'next/server';
 import { askLivingResumeAgent } from '@/lib/services/rag-agent-service';
 
