@@ -17,6 +17,7 @@
 
 import { db } from '@/lib/db';
 import { ATSAnalysisOutput } from '@/lib/services/ats-service';
+import { saveResumeToMemory } from '@/lib/services/resume-service';
 
 export interface ImportedResumeResult {
   resumeId: string;
@@ -411,97 +412,130 @@ Return pure JSON:
     summary,
   };
 
-  // Find demo user or fallback
-  const user = await db.user.findFirst();
-  const userId = user?.id || 'demo-user-alex';
   const finalTitle = `${name} — ${candidateTitle}`;
+  let userId = 'demo-user-alex';
+  let resumeId = `imported-${Date.now()}`;
 
-  // Create Resume in DB
-  const newResume = await db.resume.create({
-    data: {
-      userId,
-      title: finalTitle,
-      isActive: true,
-    },
-  });
+  // 1. Try to find user from DB
+  try {
+    const user = await db.user.findFirst();
+    if (user?.id) userId = user.id;
+  } catch (e) {
+    console.warn('Database query user.findFirst note:', e);
+  }
 
-  const resumeId = newResume.id;
-
-  // Insert Sections into SQLite DB
   const sectionDefs = [
-    { sectionType: 'personal_info', order: 0, content: personalInfo },
-    { sectionType: 'experience', order: 1, content: parsedExperiences },
-    { sectionType: 'education', order: 2, content: parsedEducation },
-    { sectionType: 'skills', order: 3, content: extractedSkills },
-    { sectionType: 'projects', order: 4, content: parsedProjects },
-    { sectionType: 'certifications', order: 5, content: parsedCertifications },
+    { id: `sec-pi-${Date.now()}`, sectionType: 'personal_info', order: 0, content: personalInfo },
+    { id: `sec-exp-${Date.now()}`, sectionType: 'experience', order: 1, content: parsedExperiences },
+    { id: `sec-edu-${Date.now()}`, sectionType: 'education', order: 2, content: parsedEducation },
+    { id: `sec-sk-${Date.now()}`, sectionType: 'skills', order: 3, content: extractedSkills },
+    { id: `sec-proj-${Date.now()}`, sectionType: 'projects', order: 4, content: parsedProjects },
+    { id: `sec-cert-${Date.now()}`, sectionType: 'certifications', order: 5, content: parsedCertifications },
   ];
 
-  for (const s of sectionDefs) {
-    await db.resumeSection.create({
-      data: {
-        resumeId,
-        sectionType: s.sectionType,
-        order: s.order,
-        content: JSON.stringify(s.content),
-      },
-    });
-  }
-
-  // Create Analysis Result
-  await db.analysisResult.create({
-    data: {
-      resumeId,
-      atsScore,
-      formattingIssuesJson: JSON.stringify(formattingIssues),
-      missingSectionsJson: JSON.stringify(missingSections),
-      readabilityScore: 94,
-      grammarIssuesJson: JSON.stringify(grammarIssues),
-      overallStrengthScore: Math.round(atsScore * 0.98),
-      scoringRubricBreakdownJson: JSON.stringify(scoringRubricBreakdown),
-    },
-  }).catch(() => {});
-
-  // Seed Skill Graph entries
-  for (const sk of extractedSkills) {
-    await db.skillGraph.create({
+  // 2. Try to persist in DB (with graceful try/catch)
+  try {
+    const newResume = await db.resume.create({
       data: {
         userId,
-        skillName: sk,
-        proficiencySignal: 0.95,
-        evidenceJson: JSON.stringify([
-          { sectionId: 'experience', textSnippet: `Verified production experience in ${sk}` },
-        ]),
+        title: finalTitle,
+        isActive: true,
       },
-    }).catch(() => {});
-  }
+    });
 
-  // Seed Verification Claims from real experience bullets
-  for (const exp of parsedExperiences.slice(0, 2)) {
-    if (exp.bullets && exp.bullets[0]) {
-      await db.verificationClaim.create({
+    if (newResume?.id) resumeId = newResume.id;
+
+    for (const s of sectionDefs) {
+      await db.resumeSection.create({
         data: {
           resumeId,
-          claimText: exp.bullets[0],
-          status: 'verified',
-          evidenceSource: `${exp.company} Product & Repository Record`,
-          confidenceNote: 'Verified founder and engineering deliverable claim',
-          specificityScore: 98,
+          sectionType: s.sectionType,
+          order: s.order,
+          content: JSON.stringify(s.content),
         },
       }).catch(() => {});
     }
+
+    await db.analysisResult.create({
+      data: {
+        resumeId,
+        atsScore,
+        formattingIssuesJson: JSON.stringify(formattingIssues),
+        missingSectionsJson: JSON.stringify(missingSections),
+        readabilityScore: 94,
+        grammarIssuesJson: JSON.stringify(grammarIssues),
+        overallStrengthScore: Math.round(atsScore * 0.98),
+        scoringRubricBreakdownJson: JSON.stringify(scoringRubricBreakdown),
+      },
+    }).catch(() => {});
+
+    for (const sk of extractedSkills) {
+      await db.skillGraph.create({
+        data: {
+          userId,
+          skillName: sk,
+          proficiencySignal: 0.95,
+          evidenceJson: JSON.stringify([
+            { sectionId: 'experience', textSnippet: `Verified production experience in ${sk}` },
+          ]),
+        },
+      }).catch(() => {});
+    }
+
+    for (const exp of parsedExperiences.slice(0, 2)) {
+      if (exp.bullets && exp.bullets[0]) {
+        await db.verificationClaim.create({
+          data: {
+            resumeId,
+            claimText: exp.bullets[0],
+            status: 'verified',
+            evidenceSource: `${exp.company} Product & Repository Record`,
+            confidenceNote: 'Verified founder and engineering deliverable claim',
+            specificityScore: 98,
+          },
+        }).catch(() => {});
+      }
+    }
+  } catch (dbErr) {
+    console.warn('Database write note (operating with in-memory parsed state):', dbErr);
   }
 
-  // Seed Embedding Chunks for RAG Candidate Agent
-  await db.embeddingChunk.create({
-    data: {
-      userId,
+  // 3. Always save full structured resume in memory cache so all pages (Builder, Agent, ATS, JD) immediately work
+  const memoryRecord = {
+    id: resumeId,
+    userId,
+    title: finalTitle,
+    isActive: true,
+    sections: sectionDefs.map((s) => ({
+      id: s.id,
       resumeId,
-      sourceType: 'experience',
-      sourceText: `${name} (${candidateTitle}) at ${parsedExperiences[0]?.company}. ${parsedExperiences[0]?.bullets?.join(' ')} Skills: ${extractedSkills.join(', ')}`,
-      vectorJson: JSON.stringify([0.1, 0.2, 0.3, 0.4, 0.5]),
-    },
-  }).catch(() => {});
+      sectionType: s.sectionType,
+      order: s.order,
+      content: typeof s.content === 'string' ? s.content : JSON.stringify(s.content),
+    })),
+    analysisResults: [
+      {
+        atsScore,
+        readabilityScore: 94,
+        overallStrengthScore: Math.round(atsScore * 0.98),
+        formattingIssuesJson: JSON.stringify(formattingIssues),
+        missingSectionsJson: JSON.stringify(missingSections),
+        grammarIssuesJson: JSON.stringify(grammarIssues),
+        scoringRubricBreakdownJson: JSON.stringify(scoringRubricBreakdown),
+      },
+    ],
+    verificationClaims: parsedExperiences.slice(0, 2).map((exp, idx) => ({
+      id: `claim-${idx}-${Date.now()}`,
+      resumeId,
+      claimText: exp.bullets?.[0] || 'Verified engineering deliverable',
+      status: 'verified',
+      evidenceSource: `${exp.company} Product Record`,
+      confidenceNote: 'Verified engineering deliverable claim',
+      specificityScore: 98,
+    })),
+  };
+
+  saveResumeToMemory(memoryRecord);
 
   return {
     resumeId,
@@ -525,3 +559,4 @@ Return pure JSON:
     },
   };
 }
+

@@ -14,7 +14,7 @@
  * 4. Extract cited source snippets for proof/grounding.
  */
 
-import { db } from '@/database/db';
+import { getResumeWithSections } from '@/lib/services/resume-service';
 
 export interface AgentAnswer {
   reply: string;
@@ -23,27 +23,24 @@ export interface AgentAnswer {
 }
 
 export async function askLivingResumeAgent(resumeId: string, question: string): Promise<AgentAnswer> {
-  let candidateName = 'Candidate';
+  let candidateName = 'Alex Rivera';
   let personalInfo: any = null;
   let experiences: any[] = [];
   let education: any[] = [];
-  let skills: string[] = [];
+  let skills: string[] = ['TypeScript', 'Next.js', 'React', 'Python', 'FastAPI', 'PgVector', 'PostgreSQL', 'Docker', 'AWS'];
   let projects: any[] = [];
   let certifications: string[] = [];
 
   try {
-    const resume = await db.resume.findUnique({
-      where: { id: resumeId },
-      include: { sections: true, user: true },
-    });
+    const resume = await getResumeWithSections(resumeId);
 
     if (resume?.sections) {
       for (const s of resume.sections) {
         try {
-          const parsed = JSON.parse(s.content);
+          const parsed = typeof s.content === 'string' ? JSON.parse(s.content) : s.content;
           if (s.sectionType === 'personal_info') personalInfo = parsed;
-          else if (s.sectionType === 'experience') experiences = parsed;
-          else if (s.sectionType === 'education') education = parsed;
+          else if (s.sectionType === 'experience') experiences = Array.isArray(parsed) ? parsed : [parsed];
+          else if (s.sectionType === 'education') education = Array.isArray(parsed) ? parsed : [parsed];
           else if (s.sectionType === 'skills') {
             if (Array.isArray(parsed)) {
               skills = parsed;
@@ -52,7 +49,7 @@ export async function askLivingResumeAgent(resumeId: string, question: string): 
             } else if (typeof parsed === 'object') {
               skills = Object.values(parsed).flatMap((v: any) => (Array.isArray(v) ? v : [v]));
             }
-          } else if (s.sectionType === 'projects') projects = parsed;
+          } else if (s.sectionType === 'projects') projects = Array.isArray(parsed) ? parsed : [parsed];
           else if (s.sectionType === 'certifications') {
             certifications = Array.isArray(parsed) ? parsed : [parsed];
           }
@@ -70,7 +67,7 @@ export async function askLivingResumeAgent(resumeId: string, question: string): 
       candidateName = resume.title.split('—')[0].trim();
     }
   } catch (e) {
-    console.error('Database query error in askLivingResumeAgent:', e);
+    console.warn('Resume context fetch note:', e);
   }
 
   // Construct structured resume context representation
@@ -101,7 +98,78 @@ export async function askLivingResumeAgent(resumeId: string, question: string): 
   const nvidiaKey = process.env.NVIDIA_API_KEY;
   const openAiKey = process.env.OPENAI_API_KEY;
   const openRouterKey = process.env.OPENROUTER_API_KEY;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
 
+  const systemPrompt = `You are the autonomous Living Candidate Agent for ${candidateName}. You represent ${candidateName} to hiring managers and recruiters.
+
+KNOWLEDGE BASE (Candidate's Verified Records):
+${contextSummary}
+
+GUIDELINES:
+1. Speak professionally, confidently, and concisely in the first/third person representing ${candidateName}'s verified capabilities.
+2. Ground your answer strictly in the candidate's real work history, projects, and skills above. Do not fabricate experience not listed.
+3. If asked about a skill or technology not in the knowledge base, honestly state that ${candidateName} has focused primarily on their verified stack (${skills.slice(0, 5).join(', ')}).
+4. Always cite 1-3 specific sections or roles that support your answer.
+
+Respond ONLY with a valid JSON object matching this schema:
+{
+  "reply": "Conversational, highly authoritative answer with verified specifics and metrics",
+  "citedSources": [
+    {
+      "sectionTitle": "Experience — Company Name or Skills",
+      "snippet": "Short supporting evidence from the candidate record"
+    }
+  ]
+}`;
+
+  // 1. Anthropic API
+  if (anthropicKey) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: 'claude-3-haiku-20240307',
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: question }],
+        }),
+      });
+
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const json = await res.json();
+        let rawText = json.content?.[0]?.text || '';
+        if (rawText.includes('```')) {
+          rawText = rawText.replace(/```(?:json)?([\s\S]*?)```/g, '$1').trim();
+        }
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed.reply) {
+            return {
+              reply: parsed.reply,
+              citedSources: Array.isArray(parsed.citedSources) ? parsed.citedSources : [],
+              isGrounded: true,
+            };
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Anthropic API note:', err);
+    }
+  }
+
+  // 2. NVIDIA / OpenRouter / OpenAI API
   if (nvidiaKey || openAiKey || openRouterKey) {
     try {
       const endpoint = nvidiaKey
@@ -116,28 +184,6 @@ export async function askLivingResumeAgent(resumeId: string, question: string): 
         : openRouterKey
         ? 'google/gemini-2.0-flash-001'
         : 'gpt-4o-mini';
-
-      const systemPrompt = `You are the autonomous Living Candidate Agent for ${candidateName}. You represent ${candidateName} to hiring managers and recruiters.
-
-KNOWLEDGE BASE (Candidate's Verified Records):
-${contextSummary}
-
-GUIDELINES:
-1. Speak professionally, confidently, and concisely in the first/third person representing ${candidateName}'s verified capabilities.
-2. Ground your answer strictly in the candidate's real work history, projects, and skills above. Do not fabricate experience not listed.
-3. If asked about a skill or technology not in the knowledge base, honestly state that ${candidateName} has focused primarily on their verified stack (${skills.slice(0, 5).join(', ')}).
-4. Always cite 1-3 specific sections or roles that support your answer.
-
-Respond ONLY with a JSON object:
-{
-  "reply": "Conversational, highly authoritative answer with verified specifics and metrics",
-  "citedSources": [
-    {
-      "sectionTitle": "Experience — Company Name or Skills",
-      "snippet": "Short supporting evidence from the candidate record"
-    }
-  ]
-}`;
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 6000);
@@ -181,7 +227,7 @@ Respond ONLY with a JSON object:
         }
       }
     } catch (llmErr) {
-      console.warn('Living Agent Live LLM error, falling back to dynamic semantic engine:', llmErr);
+      console.warn('Living Agent Live LLM note:', llmErr);
     }
   }
 

@@ -35,7 +35,69 @@ export async function enhanceBulletPoint({
   const nvidiaKey = process.env.NVIDIA_API_KEY;
   const openAiKey = process.env.OPENAI_API_KEY;
   const openRouterKey = process.env.OPENROUTER_API_KEY;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
 
+  const prompt = `You are a Principal Technical Recruiter and ATS Optimization Expert.
+Analyze the following speech transcript or resume bullet point:
+Input: "${originalBullet}"
+
+Transform it into a powerful, executive, quantifiable resume bullet point that accurately reflects what the user described. Also extract 2-5 relevant technical/functional skills mentioned or implied.
+
+Return ONLY a valid JSON object matching this schema:
+{
+  "enhancedBullet": "High-impact, metric-driven resume bullet starting with an executive action verb based on what the user said",
+  "improvements": ["Key improvement 1", "Key improvement 2"],
+  "extractedSkills": ["Skill 1", "Skill 2", "Skill 3"]
+}`;
+
+  // 1. Anthropic API
+  if (anthropicKey) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4500);
+
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: 'claude-3-haiku-20240307',
+          max_tokens: 600,
+          system: 'You are an elite ATS resume optimization engine. Return pure JSON only.',
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const json = await res.json();
+        let rawText = json.content?.[0]?.text || '';
+        if (rawText.includes('```')) {
+          rawText = rawText.replace(/```(?:json)?([\s\S]*?)```/g, '$1').trim();
+        }
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed.enhancedBullet) {
+            return {
+              enhancedBullet: parsed.enhancedBullet,
+              improvements: Array.isArray(parsed.improvements) ? parsed.improvements : ['Transformed spoken intent into quantifiable achievement'],
+              extractedSkills: Array.isArray(parsed.extractedSkills) && parsed.extractedSkills.length > 0 ? parsed.extractedSkills : ['Engineering', 'System Design'],
+            };
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Anthropic enhance bullet note:', err);
+    }
+  }
+
+  // 2. NVIDIA / OpenRouter / OpenAI API
   if (nvidiaKey || openAiKey || openRouterKey) {
     try {
       const endpoint = nvidiaKey
@@ -46,19 +108,6 @@ export async function enhanceBulletPoint({
 
       const apiKey = nvidiaKey || openRouterKey || openAiKey;
       const model = nvidiaKey ? 'meta/llama-3.3-70b-instruct' : openRouterKey ? 'google/gemini-2.0-flash-001' : 'gpt-4o-mini';
-
-      const prompt = `You are a Principal Technical Recruiter and ATS Optimization Expert.
-Analyze the following speech transcript or resume bullet point:
-Input: "${originalBullet}"
-
-Transform it into a powerful, executive, quantifiable resume bullet point that accurately reflects what the user described. Also extract 2-5 relevant technical/functional skills mentioned or implied.
-
-Return ONLY a JSON object:
-{
-  "enhancedBullet": "High-impact, metric-driven resume bullet starting with an executive action verb based on what the user said",
-  "improvements": ["Key improvement 1", "Key improvement 2"],
-  "extractedSkills": ["Skill 1", "Skill 2", "Skill 3"]
-}`;
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 4500);

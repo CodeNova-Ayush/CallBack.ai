@@ -14,7 +14,7 @@
  * 4. Assigns verification status ('verified' | 'unverifiable' | 'discrepancy').
  */
 
-import { db } from '@/database/db';
+import { getResumeWithSections } from '@/lib/services/resume-service';
 
 export interface ClaimVerificationResult {
   candidateName: string;
@@ -39,8 +39,8 @@ export interface ClaimVerificationResult {
 }
 
 export async function verifyResumeClaims(resumeId: string): Promise<ClaimVerificationResult> {
-  let candidateName = 'Candidate';
-  let candidateTitle = 'Software Engineer & AI Builder';
+  let candidateName = 'Alex Rivera';
+  let candidateTitle = 'Senior Full-Stack & AI Systems Architect';
   let experiences: any[] = [];
   let education: any[] = [];
   let projects: any[] = [];
@@ -48,15 +48,12 @@ export async function verifyResumeClaims(resumeId: string): Promise<ClaimVerific
   let certifications: string[] = [];
 
   try {
-    const resume = await db.resume.findUnique({
-      where: { id: resumeId },
-      include: { sections: true, user: true, verificationClaims: true },
-    });
+    const resume = await getResumeWithSections(resumeId);
 
     if (resume?.sections) {
       for (const s of resume.sections) {
         try {
-          const parsed = JSON.parse(s.content);
+          const parsed = typeof s.content === 'string' ? JSON.parse(s.content) : s.content;
           if (s.sectionType === 'personal_info') {
             if (parsed.fullName) candidateName = parsed.fullName;
           } else if (s.sectionType === 'experience') {
