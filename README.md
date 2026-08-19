@@ -49,106 +49,106 @@ For the past three decades, the global hiring economy has relied on a fundamenta
 
 ## 🌟 Visual Product Walkthrough & In-Depth Feature Breakdown
 
-### 1. Production Landing Page & 40+ ATS Templates Showcase
+### 1. High-Converting Landing Page & 3D Template Carousel
 ![1. Production Landing Page](public/screenshots/01-landing-page.png)
 
-- **High-Converting Hero Section**: Dynamic candidate showcase featuring verified engineering metrics, live ATS score telemetry (98% ATS Grounding), and 1-click interactive demo access.
-- **Interactive Template Gallery**: Explore live thumbnails across Executive, Tech, Startup, Editorial, and High-Density layout categories, demonstrating verified parser compatibility.
-- **Architectural Value Highlights**: Clear breakdown of the 3-zone builder, Living Agent system, and automated JD keyword matching.
+- **Next-Gen Hero Experience**: Features the Enhancv-style embedded vector logo, rich multi-color headline gradient, and live ATS pass rate metrics.
+- **Interactive 3D Template Showcase**: Live revolving carousel demonstrating 40+ ATS-compliant templates across Executive, Tech, Startup, and Editorial categories.
+- **Candidate Intelligence Matrix**: Direct access into the 3-zone builder, living candidate agent, and automated JD matcher.
 
 ---
 
-### 2. Candidate Workspace Dashboard
-![2. Candidate Workspace Dashboard](public/screenshots/02-candidate-dashboard.png)
+### 2. Modern Authentication & Workspace Access
+![2. Modern Authentication](public/screenshots/02-sign-in.png)
 
-- **Centralized Candidate Hub**: Manage multiple active resumes, monitor real-time ATS compliance scores, view claim verification trust scores, and initiate AI audits.
-- **Quick Action Command Center**: Direct 1-click navigation into the 3-Zone Builder, ATS Analyzer, Job Description Matcher, and Living Candidate Agent.
-- **Telemetry Overview**: Real-time stats on recruiter views, agent conversations, and application health.
-
----
-
-### 3. 3-Zone Interactive Resume Builder & A4 Vector Preview
-![3. 3-Zone Interactive Resume Builder](public/screenshots/03-resume-builder.png)
-
-- **Zone 1 (Left Navigation)**: Reorderable resume sections with item counters and drag-and-drop handles for Personal Info, Experience, Projects, Education, and Skills.
-- **Zone 2 (Center Form)**: Active form editor with inline AI action-verb enhancers, dynamic date pickers, and live bullet optimization.
-- **Zone 3 (Right Live Canvas)**: Real-time vector preview scaled to standard ISO A4 dimensions (`210mm × 297mm`) with a sticky 1-click template switcher ribbon bar.
+- **Enterprise Clerk Integration**: Seamless social & email authentication using Clerk.
+- **Unified Branding**: Clean `#048BA2` button styling with modern embedded brand identity.
 
 ---
 
-### 4. Living Candidate RAG Agent
-![4. Living Candidate RAG Agent](public/screenshots/05-rag-candidate-agent.png)
+### 3. Candidate Workspace Dashboard
+![3. Candidate Workspace Dashboard](public/screenshots/03-candidate-dashboard.png)
 
-- **Interactive Conversational AI**: Transforms flat PDF resumes into living agents that answer hiring managers' inquiries with verified accuracy.
-- **Source-Grounded Citations**: Every answer references exact experience bullet points with 98% ATS Grounding and 99% Trust Score badges.
-- **Local File Dropzone**: Drag and drop any PDF/DOCX resume to instantly initialize a living agent trained on that candidate.
+- **Centralized Management Hub**: Overview of all active resumes, real-time ATS compliance scores, Trust Scores, and quick navigation.
+- **Quick Action Command Center**: 1-click access to the 3-Zone Builder, ATS Analyzer, Job Description Matcher, and Living Candidate Agent.
 
 ---
 
-### 5. Deep ATS Analyzer & Real-Time Audit
-![5. Deep ATS Analyzer](public/screenshots/04-ats-analyzer.png)
+### 4. 3-Zone Interactive Resume Builder & A4 Vector Preview
+![4. 3-Zone Interactive Resume Builder](public/screenshots/04-resume-builder.png)
 
-- **Quantifiable Impact Scoring**: Audits action verb power ratings, metrics density, and structural readability against top enterprise Applicant Tracking Systems.
+- **Zone 1 (Left Navigation)**: Drag-and-drop section reordering, template switching, and section counters.
+- **Zone 2 (Center Form)**: Active form editor with inline AI action-verb enhancers (Google/XYZ formula) and live bullet optimization.
+- **Zone 3 (Right Live Canvas)**: Real-time vector preview scaled to standard ISO A4 dimensions (`210mm × 297mm`) with instant print stylesheet (`@media print`) and PDF export.
+
+---
+
+### 5. Deep ATS Analyzer & Real-Time Compliance Audit
+![5. Deep ATS Analyzer](public/screenshots/05-ats-analyzer.png)
+
+- **4-Pillar Scoring Rubric**: Audits Contact Information (15%), Work Experience Metrics (35%), Skill Density (25%), and Readability (25%).
 - **Inline AI Bullet Fixer**: 1-click enhancement of weak bullet points into high-impact, metric-driven statements.
-- **Categorized Remediation**: Actionable suggestions across formatting, keyword density, and technical depth.
 
 ---
 
-### 6. Job Description Matcher & Keyword Gap Analysis
-![6. Job Description Matcher](public/screenshots/06-jd-match.png)
+### 6. Living Candidate RAG Agent (Zero-Hallucination Q&A)
+![6. Living Candidate RAG Agent](public/screenshots/06-rag-candidate-agent.png)
 
-- **Semantic Job Description Matching**: Paste target job descriptions to compute compatibility scores (0–100%).
-- **Keyword Gap Discovery**: Pinpoints critical missing keywords and proposes 1-click resume tailoring optimizations.
-- **Relevance Breakdown**: Compares candidate technical stack directly against the hiring team's required competencies.
+- **Conversational Candidate Agent**: Allows hiring managers to converse 24/7 with the candidate's verified career artifacts.
+- **Source-Grounded Citations**: Every answer references exact experience bullet points with verifiable source chips.
 
 ---
 
-### 7. Recruiter Surface & Evaluation Companion
-![7. Recruiter Evaluation Companion](public/screenshots/07-recruiter-dashboard.png)
+### 7. Semantic Job Description (JD) Matcher & Keyword Gap Analysis
+![7. Job Description Matcher](public/screenshots/07-jd-match.png)
 
-- **Automated Screening Hub**: Review candidate fit scores, verified claims, and interview transcripts in a unified portal.
-- **Instant Q&A Inquiries**: Ask the AI agent deep technical questions to verify architecture and engineering credentials before scheduling initial calls.
+- **Semantic Fit Scoring**: Analyzes target job descriptions against candidate experience to compute overall compatibility.
+- **Keyword Gap Discovery**: Highlights matched vs. missing skills and suggests tailored bullet rewrites.
 
 ---
 
 ### 8. Claim Verification & Trust Score Engine
 ![8. Claim Verification](public/screenshots/08-claim-verification.png)
 
-- **Public Artifact Auditing**: Automatically cross-references experience claims, GitHub repositories, and live links.
-- **Timeline Sanity Checks**: Validates employment overlap and assigns a transparent Trust Score (96–99%).
-- **Confidence Badges**: Highlights verified metrics to give hiring teams confidence in candidate claims.
+- **Public Artifact Auditing**: Cross-references experience claims, GitHub commits, and live repository links.
+- **Timeline Sanity Checks**: Validates employment overlap and computes an objective Trust Score.
 
 ---
 
-### 9. Auto-Tailor Opportunities & Job Fit Tracker
-![9. Auto-Tailor Opportunities](public/screenshots/09-opportunities-tailor.png)
+### 9. Recruiter Surface & Evaluation Companion
+![9. Recruiter Evaluation Companion](public/screenshots/09-recruiter-dashboard.png)
 
-- **Live Job Opportunities Feed**: Automatically matches active candidate resumes against open software engineering and AI positions.
-- **Instant Resume Tailoring**: Generates a tailored application snapshot customized to the target employer's specific tech stack.
-
----
-
-### 10. Persistent Verified Skill Graph
-![10. Persistent Verified Skill Graph](public/screenshots/10-skill-graph.png)
-
-- **Dynamic Proficiency Signals**: Visualizes technical competencies with evidence-backed confidence bars.
-- **Multi-Category Stacks**: Organizes languages, frontend, backend, AI/ML, and cloud infrastructure skills into an interactive matrix.
+- **Candidate Evaluation Portal**: Automated screening hub with fit scores, verified claims, and interview transcripts.
+- **Deep Technical Inquiries**: Interrogate candidate architecture and engineering depth prior to scheduling interviews.
 
 ---
 
-### 11. Voice-Native Career Intake Engine
-![11. Voice Intake](public/screenshots/11-voice-intake.png)
+### 10. Auto-Tailor Opportunities & Job Fit Tracker
+![10. Auto-Tailor Opportunities](public/screenshots/10-opportunities-tailor.png)
 
-- **Speech-to-Text Ingestion**: Speak naturally about your career accomplishments, past projects, and responsibilities.
-- **AI Bullet Generation**: Converts spoken audio streams into structured, impact-driven resume bullet points automatically.
+- **Live Job Opportunities Feed**: Matches active resumes against open software engineering and AI positions.
+- **1-Click Application Snapshots**: Generates tailored resume versions custom-fitted to the target employer's tech stack.
 
 ---
 
-### 12. Binary Document Parser & Dropzone
-![12. Binary Document Dropzone & Import](public/screenshots/12-import-old-resume.png)
+### 11. Persistent Verified Skill Graph
+![11. Persistent Verified Skill Graph](public/screenshots/11-skill-graph.png)
 
-- **Binary Stream Decoding**: Direct binary extraction from uploaded PDF, DOCX, and text files using `pdf2json` and `mammoth`.
-- **Instant ATS Scoring**: Analyzes keyword density, action verb strength, and formatting compliance in under 3 seconds.
+- **Dynamic Proficiency Signals**: Interactive matrix of Languages, Frameworks, AI/ML, and Cloud infrastructure competencies.
+
+---
+
+### 12. Voice-Native Career Intake Engine
+![12. Voice Intake](public/screenshots/12-voice-intake.png)
+
+- **Speech-to-Text Ingestion**: Speak naturally about career accomplishments to generate structured resume bullets automatically.
+
+---
+
+### 13. Binary Document Parser & Dropzone
+![13. Binary Document Dropzone & Import](public/screenshots/13-import-old-resume.png)
+
+- **Multi-Format Extraction**: Ingests PDF, DOCX, and TXT files with automated entity extraction and instant ATS pre-flight scoring.
 
 ---
 
