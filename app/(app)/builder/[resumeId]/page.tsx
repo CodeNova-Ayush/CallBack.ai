@@ -22,6 +22,14 @@ import {
   CheckCircle2,
   Save,
   Loader2,
+  RefreshCw,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
+  Maximize2,
+  Minimize2,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
@@ -186,6 +194,9 @@ export default function BuilderPage(props: { params: Promise<{ resumeId: string 
   const [isExportingPDF, setIsExportingPDF] = useState<boolean>(false);
   const [downloadSuccessMsg, setDownloadSuccessMsg] = useState<string | null>(null);
   const [lastSavedTime, setLastSavedTime] = useState<string>('Just now');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+  const [isEditorCollapsed, setIsEditorCollapsed] = useState<boolean>(false);
+  const [previewWidthPreset, setPreviewWidthPreset] = useState<'standard' | 'wide' | 'expanded'>('wide');
 
   // Resume State
   const [personalInfo, setPersonalInfo] = useState(initialData.personalInfo);
@@ -275,8 +286,8 @@ export default function BuilderPage(props: { params: Promise<{ resumeId: string 
   };
 
   // Inline AI Bullet Enhancer
-  const handleEnhanceBullet = async (expId: string, bulletIdx: number, originalText: string) => {
-    setIsEnhancing(`${expId}-${bulletIdx}`);
+  const handleEnhanceBullet = async (sectionType: 'experience' | 'projects', itemIdx: number, bulletIdx: number, originalText: string) => {
+    setIsEnhancing(`${sectionType}-${itemIdx}-${bulletIdx}`);
     try {
       const res = await fetch('/api/ai/enhance-bullet', {
         method: 'POST',
@@ -285,16 +296,27 @@ export default function BuilderPage(props: { params: Promise<{ resumeId: string 
       });
       const data = await res.json();
       if (data.enhancedBullet) {
-        setExperiences((prev) =>
-          prev.map((e) => {
-            if (e.id === expId) {
-              const updatedBullets = [...e.bullets];
-              updatedBullets[bulletIdx] = data.enhancedBullet;
-              return { ...e, bullets: updatedBullets };
+        if (sectionType === 'experience') {
+          setExperiences((prev) => {
+            const updated = [...prev];
+            if (updated[itemIdx]) {
+              const bullets = [...updated[itemIdx].bullets];
+              bullets[bulletIdx] = data.enhancedBullet;
+              updated[itemIdx] = { ...updated[itemIdx], bullets };
             }
-            return e;
-          })
-        );
+            return updated;
+          });
+        } else {
+          setProjects((prev) => {
+            const updated = [...prev];
+            if (updated[itemIdx]) {
+              const bullets = [...updated[itemIdx].bullets];
+              bullets[bulletIdx] = data.enhancedBullet;
+              updated[itemIdx] = { ...updated[itemIdx], bullets };
+            }
+            return updated;
+          });
+        }
       }
     } catch (err) {
       console.error('Enhance failed:', err);
@@ -839,86 +861,108 @@ ${skills.join(', ')}
   return (
     <div className="h-screen flex flex-col bg-slate-100/60 overflow-hidden select-none">
       {/* Top Builder Toolbar */}
-      <header className="h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 px-6 flex items-center justify-between shrink-0 no-print">
+      <header className="h-16 bg-white/95 backdrop-blur-xl border-b border-slate-200/90 px-6 flex items-center justify-between shrink-0 no-print shadow-xs relative z-20">
         <div className="flex items-center gap-3">
-          <span className="font-extrabold text-sm text-slate-900 hidden sm:inline">
-            {personalInfo.fullName ? `${personalInfo.fullName} — Resume` : 'New Blank Resume'}
-          </span>
+          <div className="flex items-center gap-2.5 mr-2">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#024959] to-[#048BA2] text-white flex items-center justify-center shadow-xs">
+              <FileText className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col hidden sm:flex">
+              <span className="font-black text-xs text-slate-900 leading-tight">
+                {personalInfo.fullName ? `${personalInfo.fullName}` : 'New Blank Resume'}
+              </span>
+              <span className="text-[10px] font-bold text-slate-400">3-Zone Studio</span>
+            </div>
+          </div>
 
-          <Button
-            variant="secondary"
-            size="sm"
-            leftIcon={<Layout className="w-3.5 h-3.5 text-indigo-600" />}
+          <div className="h-6 w-px bg-slate-200 hidden sm:block" />
+
+          {/* Templates Button */}
+          <button
+            type="button"
             onClick={() => setIsTemplateModalOpen(true)}
+            className="px-3.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-[#048BA2]/60 text-slate-800 hover:text-[#048BA2] text-xs font-black rounded-xl shadow-2xs hover:shadow-xs flex items-center gap-2 transition-all cursor-pointer group"
+            title="Choose from 40+ ATS-ready executive templates"
           >
-            Change Template ({selectedTemplate})
-          </Button>
+            <Layout className="w-3.5 h-3.5 text-[#048BA2] group-hover:scale-110 transition-transform" />
+            <span>Templates</span>
+            <span className="px-1.5 py-0.5 bg-slate-100 group-hover:bg-[#E6F5F8] text-[9.5px] font-bold text-slate-600 group-hover:text-[#048BA2] rounded-md transition-colors capitalize">
+              {selectedTemplate.replace(/_/g, ' ')}
+            </span>
+          </button>
 
-          <Button
-            variant="tertiary"
-            size="sm"
-            leftIcon={<RotateCcw className="w-3.5 h-3.5 text-slate-500" />}
+          {/* Start Fresh Button */}
+          <button
+            type="button"
             onClick={handleClearData}
+            className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-900 text-xs font-bold rounded-xl shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
             title="Clear all fields to start completely fresh"
           >
-            Start Fresh
-          </Button>
+            <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
+            <span>Start Fresh</span>
+          </button>
 
+          {/* Load Demo Data Button */}
           {!isDemoResume && (
-            <Button
-              variant="tertiary"
-              size="sm"
-              leftIcon={<Sparkles className="w-3.5 h-3.5 text-indigo-600" />}
+            <button
+              type="button"
               onClick={handleLoadDemo}
+              className="px-3 py-1.5 bg-indigo-50/80 hover:bg-indigo-100/80 border border-indigo-200/80 text-indigo-700 text-xs font-bold rounded-xl shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
             >
-              Load Demo Data
-            </Button>
+              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Load Demo Data</span>
+            </button>
           )}
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Local Storage Auto-Save Badge */}
-          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 rounded-full border border-slate-200 text-[10.5px] font-bold text-slate-600">
-            <Save className="w-3 h-3 text-teal-600" />
+          {/* Local Storage Auto-Save Live Badge */}
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-emerald-50/90 border border-emerald-200/80 rounded-full text-[10.5px] font-extrabold text-emerald-800 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>Auto-saved locally ({lastSavedTime})</span>
           </div>
 
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-full border border-slate-200">
+          {/* Precision Zoom Controls */}
+          <div className="flex items-center gap-1 bg-white border border-slate-200/90 rounded-xl p-1 shadow-2xs">
             <button
               onClick={() => setZoomLevel((z) => Math.max(70, z - 10))}
-              className="p-1 hover:bg-white rounded-full text-slate-600 cursor-pointer"
+              className="w-6 h-6 flex items-center justify-center hover:bg-slate-100 rounded-lg text-slate-600 transition-colors cursor-pointer"
               title="Zoom Out"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
-            <span className="text-[11px] font-bold text-slate-900 px-1">{zoomLevel}%</span>
+            <span className="text-[11px] font-black text-slate-800 px-1.5 min-w-[38px] text-center font-mono">
+              {zoomLevel}%
+            </span>
             <button
               onClick={() => setZoomLevel((z) => Math.min(130, z + 10))}
-              className="p-1 hover:bg-white rounded-full text-slate-600 cursor-pointer"
+              className="w-6 h-6 flex items-center justify-center hover:bg-slate-100 rounded-lg text-slate-600 transition-colors cursor-pointer"
               title="Zoom In"
             >
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          <Button
-            variant="secondary"
-            size="sm"
+          {/* Save .JSON Button */}
+          <button
+            type="button"
             onClick={() => handleDownloadLocalFile('json')}
-            leftIcon={<Save className="w-3.5 h-3.5 text-indigo-600" />}
+            className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 text-slate-700 text-xs font-bold rounded-xl shadow-2xs flex items-center gap-2 transition-all cursor-pointer"
             title="Save raw JSON resume file to your device"
           >
-            Save .JSON
-          </Button>
+            <Save className="w-3.5 h-3.5 text-slate-500" />
+            <span>Save .JSON</span>
+          </button>
 
-          <Button
-            variant="primary"
-            size="sm"
+          {/* Preview & Export PDF Flagship Button */}
+          <button
+            type="button"
             onClick={() => setIsExportPreviewModalOpen(true)}
-            leftIcon={<Download className="w-4 h-4 text-white" />}
+            className="px-4 py-2 bg-gradient-to-r from-[#024959] via-[#048BA2] to-[#0FA5BF] hover:from-[#013541] hover:to-[#037488] active:scale-[0.98] text-white font-black text-xs rounded-xl shadow-md shadow-[#048BA2]/25 hover:shadow-lg flex items-center gap-2 transition-all cursor-pointer"
           >
-            Preview & Export PDF
-          </Button>
+            <Download className="w-4 h-4 text-white" />
+            <span>Preview & Export PDF</span>
+          </button>
         </div>
       </header>
 
@@ -934,13 +978,29 @@ ${skills.join(', ')}
         </div>
       )}
 
-      {/* 3-Zone Full Viewport Layout */}
-      <div className="flex-1 flex min-h-0">
-        {/* Zone 1: Left Section List Navigation */}
-        <aside className="w-64 bg-slate-50/80 border-r border-slate-200 flex flex-col p-3 gap-1 overflow-y-auto shrink-0 select-none no-print">
-          <span className="px-3 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-            Resume Sections
-          </span>
+      {/* 3-Zone Full Viewport Studio Layout */}
+      <div className="flex-1 flex min-h-0 overflow-hidden">
+        {/* Zone 1 (Left): Section List Navigation */}
+        <aside
+          className={`${
+            isSidebarCollapsed ? 'w-16 p-2 items-center' : 'w-48 xl:w-52 p-3'
+          } bg-slate-50/95 border-r border-slate-200/90 flex flex-col gap-1 overflow-y-auto shrink-0 select-none no-print transition-all duration-300`}
+        >
+          <div className="flex items-center justify-between px-2 py-2 mb-1">
+            {!isSidebarCollapsed && (
+              <span className="text-[11px] font-black text-slate-500 uppercase tracking-wider">
+                Sections
+              </span>
+            )}
+            <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="p-1 hover:bg-slate-200/70 rounded-lg text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+              title={isSidebarCollapsed ? 'Expand Sections Sidebar' : 'Collapse Sections Sidebar'}
+            >
+              {isSidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+            </button>
+          </div>
+
           {sectionsList.map((sec) => {
             const Icon = sec.icon;
             const isActive = activeSection === sec.id;
@@ -948,17 +1008,28 @@ ${skills.join(', ')}
               <button
                 key={sec.id}
                 onClick={() => setActiveSection(sec.id)}
-                className={`flex items-center justify-between px-3.5 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  isActive ? 'bg-gradient-to-r from-[#008CA0] via-[#2E75C4] to-[#5039F6] text-white shadow-xs' : 'text-slate-700 hover:bg-white'
+                title={sec.title}
+                className={`flex items-center ${
+                  isSidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'
+                } rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-gradient-to-r from-[#024959] via-[#048BA2] to-[#0FA5BF] text-white shadow-md shadow-[#048BA2]/25'
+                    : 'text-slate-700 hover:bg-white border border-transparent hover:border-slate-200'
                 }`}
               >
-                <div className="flex items-center gap-2.5">
-                  <GripVertical className={`w-3.5 h-3.5 ${isActive ? 'text-white/70' : 'text-slate-400'}`} />
+                <div className="flex items-center gap-2">
+                  {!isSidebarCollapsed && (
+                    <GripVertical className={`w-3 h-3 ${isActive ? 'text-white/70' : 'text-slate-400'}`} />
+                  )}
                   <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
-                  <span>{sec.title}</span>
+                  {!isSidebarCollapsed && <span>{sec.title}</span>}
                 </div>
-                {typeof sec.count === 'number' && (
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-white text-slate-700 border border-slate-200'}`}>
+                {!isSidebarCollapsed && typeof sec.count === 'number' && (
+                  <span
+                    className={`px-1.5 py-0.5 rounded-full text-[9.5px] font-bold ${
+                      isActive ? 'bg-white/20 text-white' : 'bg-white text-slate-700 border border-slate-200'
+                    }`}
+                  >
                     {sec.count}
                   </span>
                 )}
@@ -967,283 +1038,16 @@ ${skills.join(', ')}
           })}
         </aside>
 
-        {/* Zone 2: Center Active Section Form */}
-        <main className="flex-1 overflow-y-auto p-6 bg-white border-r border-slate-200 flex flex-col gap-6 no-print">
-          {activeSection === 'personal_info' && (
-            <div className="flex flex-col gap-5 max-w-2xl">
-              <h2 className="text-lg font-extrabold text-slate-900 border-b border-slate-200 pb-2">Personal Details</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <Input placeholder="John Doe" label="Full Name" value={personalInfo.fullName} onChange={(e) => setPersonalInfo({ ...personalInfo, fullName: e.target.value })} />
-                <Input placeholder="john@example.com" label="Email Address" value={personalInfo.email} onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })} />
-                <Input placeholder="+1 (555) 000-0000" label="Phone Number" value={personalInfo.phone} onChange={(e) => setPersonalInfo({ ...personalInfo, phone: e.target.value })} />
-                <Input placeholder="City, State" label="Location" value={personalInfo.location} onChange={(e) => setPersonalInfo({ ...personalInfo, location: e.target.value })} />
-                <Input placeholder="linkedin.com/in/username" label="LinkedIn URL" value={personalInfo.linkedin} onChange={(e) => setPersonalInfo({ ...personalInfo, linkedin: e.target.value })} />
-                <Input placeholder="github.com/username" label="GitHub URL" value={personalInfo.github} onChange={(e) => setPersonalInfo({ ...personalInfo, github: e.target.value })} />
-              </div>
-              <Textarea
-                placeholder="Briefly describe your career background and key achievements..."
-                label="Professional Summary"
-                rows={4}
-                value={personalInfo.summary}
-                onChange={(e) => setPersonalInfo({ ...personalInfo, summary: e.target.value })}
-              />
-            </div>
-          )}
-
-          {activeSection === 'experience' && (
-            <div className="flex flex-col gap-6 max-w-2xl">
-              <div className="flex items-center justify-between border-b border-[#EAE3D5] pb-2">
-                <h2 className="text-lg font-extrabold text-[#231F1D]">Work Experience</h2>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  leftIcon={<Plus className="w-3.5 h-3.5" />}
-                  onClick={() =>
-                    setExperiences([
-                      ...experiences,
-                      {
-                        id: `exp-${Date.now()}`,
-                        role: '',
-                        company: '',
-                        location: '',
-                        startDate: '',
-                        endDate: 'Present',
-                        bullets: [''],
-                      },
-                    ])
-                  }
-                >
-                  Add Experience
-                </Button>
-              </div>
-
-              {experiences.length === 0 && (
-                <div className="p-8 text-center bg-[#FAF6F0] border border-dashed border-[#EAE3D5] rounded-2xl flex flex-col items-center gap-2">
-                  <span className="text-xs text-[#786F68]">No work experience entries added yet.</span>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    leftIcon={<Plus className="w-3.5 h-3.5" />}
-                    onClick={() =>
-                      setExperiences([
-                        {
-                          id: `exp-${Date.now()}`,
-                          role: 'Software Engineer',
-                          company: 'Acme Corp',
-                          location: 'San Francisco, CA',
-                          startDate: '2022-01',
-                          endDate: 'Present',
-                          bullets: ['Built scalable full-stack web applications serving 50k monthly active users.'],
-                        },
-                      ])
-                    }
-                  >
-                    Add First Experience
-                  </Button>
-                </div>
-              )}
-
-              {experiences.map((exp) => (
-                <Card key={exp.id} className="flex flex-col gap-4 border border-[#EAE3D5] p-5 rounded-2xl bg-[#FAF6F0]/40 relative">
-                  <button
-                    onClick={() => setExperiences(experiences.filter((x) => x.id !== exp.id))}
-                    className="absolute top-4 right-4 text-red-500 hover:text-red-700"
-                    title="Remove Entry"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-
-                  <div className="grid grid-cols-2 gap-3 pr-6">
-                    <Input
-                      placeholder="e.g. Software Engineer"
-                      label="Job Title / Role"
-                      value={exp.role}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setExperiences(experiences.map((x) => (x.id === exp.id ? { ...x, role: val } : x)));
-                      }}
-                    />
-                    <Input
-                      placeholder="e.g. Acme Corp"
-                      label="Company Name"
-                      value={exp.company}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setExperiences(experiences.map((x) => (x.id === exp.id ? { ...x, company: val } : x)));
-                      }}
-                    />
-                    <Input
-                      placeholder="e.g. 2022-01"
-                      label="Start Date"
-                      value={exp.startDate}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setExperiences(experiences.map((x) => (x.id === exp.id ? { ...x, startDate: val } : x)));
-                      }}
-                    />
-                    <Input
-                      placeholder="e.g. Present"
-                      label="End Date"
-                      value={exp.endDate}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setExperiences(experiences.map((x) => (x.id === exp.id ? { ...x, endDate: val } : x)));
-                      }}
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-[#231F1D]">Action Bullets & Achievements</label>
-                    {exp.bullets.map((b, bIdx) => (
-                      <div key={bIdx} className="flex items-center gap-2">
-                        <Input
-                          placeholder="Accomplished X by implementing Y, resulting in Z..."
-                          value={b}
-                          className="bg-white"
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            const updated = [...exp.bullets];
-                            updated[bIdx] = val;
-                            setExperiences(experiences.map((x) => (x.id === exp.id ? { ...x, bullets: updated } : x)));
-                          }}
-                        />
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          isLoading={isEnhancing === `${exp.id}-${bIdx}`}
-                          leftIcon={<Sparkles className="w-3.5 h-3.5 text-[#048BA2]" />}
-                          onClick={() => handleEnhanceBullet(exp.id, bIdx, b)}
-                          title="Enhance bullet with AI metrics"
-                        >
-                          Enhance
-                        </Button>
-                      </div>
-                    ))}
-                    <button
-                      onClick={() => {
-                        const updated = [...exp.bullets, ''];
-                        setExperiences(experiences.map((x) => (x.id === exp.id ? { ...x, bullets: updated } : x)));
-                      }}
-                      className="text-xs font-bold text-[#048BA2] hover:underline self-start mt-1 cursor-pointer"
-                    >
-                      + Add Bullet Line
-                    </button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {activeSection === 'projects' && (
-            <div className="flex flex-col gap-6 max-w-2xl">
-              <div className="flex items-center justify-between border-b border-[#EAE3D5] pb-2">
-                <h2 className="text-lg font-extrabold text-[#231F1D]">Projects</h2>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  leftIcon={<Plus className="w-3.5 h-3.5" />}
-                  onClick={() =>
-                    setProjects([
-                      ...projects,
-                      {
-                        id: `proj-${Date.now()}`,
-                        title: 'New Project',
-                        techStack: 'React, Node.js',
-                        link: 'github.com/user/repo',
-                        bullets: ['Built application serving users.'],
-                      },
-                    ])
-                  }
-                >
-                  Add Project
-                </Button>
-              </div>
-
-              {projects.map((proj) => (
-                <Card key={proj.id} className="flex flex-col gap-3 p-4 bg-[#FAF6F0]/40">
-                  <Input label="Project Title" value={proj.title} onChange={(e) => setProjects(projects.map((p) => (p.id === proj.id ? { ...p, title: e.target.value } : p)))} />
-                  <Input label="Tech Stack" value={proj.techStack} onChange={(e) => setProjects(projects.map((p) => (p.id === proj.id ? { ...p, techStack: e.target.value } : p)))} />
-                  <Input label="Project Link" value={proj.link} onChange={(e) => setProjects(projects.map((p) => (p.id === proj.id ? { ...p, link: e.target.value } : p)))} />
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {activeSection === 'education' && (
-            <div className="flex flex-col gap-6 max-w-2xl">
-              <div className="flex items-center justify-between border-b border-[#EAE3D5] pb-2">
-                <h2 className="text-lg font-extrabold text-[#231F1D]">Education</h2>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  leftIcon={<Plus className="w-3.5 h-3.5" />}
-                  onClick={() =>
-                    setEducation([
-                      ...education,
-                      {
-                        id: `edu-${Date.now()}`,
-                        degree: 'Degree / Certificate',
-                        institution: 'University Name',
-                        location: 'City, State',
-                        startDate: '2020',
-                        endDate: '2024',
-                        gpa: '',
-                      },
-                    ])
-                  }
-                >
-                  Add Education
-                </Button>
-              </div>
-
-              {education.map((edu) => (
-                <Card key={edu.id} className="flex flex-col gap-3 p-4 bg-[#FAF6F0]/40">
-                  <Input label="Degree" value={edu.degree} onChange={(e) => setEducation(education.map((ed) => (ed.id === edu.id ? { ...ed, degree: e.target.value } : ed)))} />
-                  <Input label="Institution" value={edu.institution} onChange={(e) => setEducation(education.map((ed) => (ed.id === edu.id ? { ...ed, institution: e.target.value } : ed)))} />
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {activeSection === 'skills' && (
-            <div className="flex flex-col gap-5 max-w-2xl">
-              <h2 className="text-lg font-extrabold text-[#231F1D] border-b border-[#EAE3D5] pb-2">Skills & Competencies</h2>
-              <div className="flex items-center gap-2">
-                <Input
-                  placeholder="e.g. React, Python, Product Strategy..."
-                  value={newSkillInput}
-                  onChange={(e) => setNewSkillInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddSkill()}
-                />
-                <Button variant="primary" size="sm" onClick={handleAddSkill}>
-                  Add Skill
-                </Button>
-              </div>
-
-              <div className="flex flex-wrap gap-2 pt-2">
-                {skills.map((sk, idx) => (
-                  <span
-                    key={idx}
-                    className="px-3 py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold rounded-full flex items-center gap-2"
-                  >
-                    {sk}
-                    <button onClick={() => handleRemoveSkill(sk)} className="text-indigo-400 hover:text-indigo-700 font-normal cursor-pointer">
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </main>
-
-        {/* Zone 3: Right Live Printable Preview */}
-        <section className="flex-1 bg-slate-100/60 flex flex-col overflow-hidden">
-          {/* Quick Template Switcher Ribbon Bar */}
-          <div className="bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between gap-3 shrink-0 shadow-2xs no-print">
+        {/* Zone 2 (Center Hero): Live Printable A4 Resume Preview Document */}
+        <section
+          className={`flex-1 min-w-0 bg-[#EBF1F5] flex flex-col overflow-hidden relative transition-all duration-300`}
+        >
+          {/* Quick Template Switcher & Width Controls Ribbon Bar */}
+          <div className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 py-2 flex items-center justify-between gap-3 shrink-0 shadow-2xs no-print">
+            {/* Left: Templates Quick Ribbon */}
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
               <span className="text-[10.5px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1 shrink-0 mr-1">
-                <Layout className="w-3.5 h-3.5 text-indigo-600" /> Templates:
+                <Layout className="w-3.5 h-3.5 text-[#048BA2]" /> Templates:
               </span>
               {[
                 { id: 'classic_ats', label: 'Classic Single-Column' },
@@ -1269,22 +1073,526 @@ ${skills.join(', ')}
                 onClick={() => setIsTemplateModalOpen(true)}
                 className="px-2.5 py-1 text-[11px] font-bold text-[#048BA2] bg-[#E6F5F8] border border-[#048BA2]/30 hover:bg-[#E6F5F8]/80 rounded-lg transition-all shrink-0 flex items-center gap-1 cursor-pointer"
               >
-                Browse All 40+ Templates ▾
+                Browse 40+ ▾
+              </button>
+            </div>
+
+            {/* Right: Width Adjustment & Layout Presets Toolbar */}
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Width Presets */}
+              <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPreviewWidthPreset('standard');
+                    setIsSidebarCollapsed(false);
+                    setIsEditorCollapsed(false);
+                  }}
+                  className={`px-2 py-1 rounded-lg text-[10.5px] font-extrabold transition-all cursor-pointer ${
+                    previewWidthPreset === 'standard' && !isEditorCollapsed
+                      ? 'bg-white text-slate-900 shadow-2xs'
+                      : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                  title="Standard 3-Column Layout"
+                >
+                  Standard
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPreviewWidthPreset('wide');
+                    setIsSidebarCollapsed(true);
+                    setIsEditorCollapsed(false);
+                  }}
+                  className={`px-2 py-1 rounded-lg text-[10.5px] font-extrabold transition-all cursor-pointer ${
+                    previewWidthPreset === 'wide' && !isEditorCollapsed
+                      ? 'bg-[#048BA2] text-white shadow-2xs'
+                      : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                  title="Wide Hero Preview Mode (Compact Sidebars)"
+                >
+                  Wide Preview
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPreviewWidthPreset('expanded');
+                    setIsSidebarCollapsed(true);
+                    setIsEditorCollapsed(true);
+                  }}
+                  className={`px-2 py-1 rounded-lg text-[10.5px] font-extrabold transition-all cursor-pointer ${
+                    isEditorCollapsed
+                      ? 'bg-slate-900 text-white shadow-2xs'
+                      : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                  title="Focus Preview (Max Width Canvas)"
+                >
+                  Max View
+                </button>
+              </div>
+
+              {/* Editor Toggle */}
+              <button
+                type="button"
+                onClick={() => setIsEditorCollapsed(!isEditorCollapsed)}
+                className={`p-1.5 border rounded-xl transition-all cursor-pointer ${
+                  isEditorCollapsed
+                    ? 'bg-[#E6F5F8] text-[#048BA2] border-[#048BA2]/40 shadow-xs'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                }`}
+                title={isEditorCollapsed ? 'Open Editor Panel' : 'Hide Editor Panel (Expand Preview)'}
+              >
+                {isEditorCollapsed ? <PanelRightOpen className="w-4 h-4" /> : <PanelRightClose className="w-4 h-4" />}
               </button>
             </div>
           </div>
 
-          {/* Canvas Scroll Area */}
-          <div className="flex-1 overflow-y-auto p-8 flex justify-center items-start">
+          {/* Centered Canvas Scroll Area */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 flex justify-center items-start">
             <ResumeTemplateRenderer
               templateId={selectedTemplate}
               data={resumeData}
               zoomLevel={zoomLevel}
             />
           </div>
-        </section>
-      </div>
 
+          {/* Floating Re-open Editor Pill when collapsed */}
+          {isEditorCollapsed && (
+            <button
+              onClick={() => setIsEditorCollapsed(false)}
+              className="absolute top-14 right-6 z-30 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-2xl shadow-xl flex items-center gap-2 cursor-pointer transition-all hover:scale-105 border border-slate-700"
+            >
+              <PanelRightOpen className="w-4 h-4 text-teal-400" />
+              <span>Edit {sectionsList.find((s) => s.id === activeSection)?.title || 'Section'}</span>
+            </button>
+          )}
+        </section>
+
+        {/* Zone 3 (Right): Active Section Editor Form & AI Tools */}
+        {!isEditorCollapsed && (
+          <main
+            className={`${
+              previewWidthPreset === 'expanded'
+                ? 'w-[320px]'
+                : previewWidthPreset === 'wide'
+                ? 'w-[360px] xl:w-[390px]'
+                : 'w-[420px] xl:w-[460px]'
+            } shrink-0 bg-white border-l border-slate-200/90 flex flex-col overflow-y-auto p-5 gap-6 no-print transition-all duration-300`}
+          >
+          {activeSection === 'personal_info' && (
+            <div className="flex flex-col gap-5">
+              <h2 className="text-lg font-black text-slate-900 border-b border-slate-200 pb-2">Personal Details</h2>
+              <div className="grid grid-cols-2 gap-4">
+                <Input placeholder="John Doe" label="Full Name" value={personalInfo.fullName} onChange={(e) => setPersonalInfo({ ...personalInfo, fullName: e.target.value })} />
+                <Input placeholder="john@example.com" label="Email Address" value={personalInfo.email} onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })} />
+                <Input placeholder="+1 (555) 000-0000" label="Phone Number" value={personalInfo.phone} onChange={(e) => setPersonalInfo({ ...personalInfo, phone: e.target.value })} />
+                <Input placeholder="City, State" label="Location" value={personalInfo.location} onChange={(e) => setPersonalInfo({ ...personalInfo, location: e.target.value })} />
+                <Input placeholder="linkedin.com/in/username" label="LinkedIn URL" value={personalInfo.linkedin} onChange={(e) => setPersonalInfo({ ...personalInfo, linkedin: e.target.value })} />
+                <Input placeholder="github.com/username" label="GitHub URL" value={personalInfo.github} onChange={(e) => setPersonalInfo({ ...personalInfo, github: e.target.value })} />
+              </div>
+              <Textarea
+                placeholder="Briefly describe your career background and key achievements..."
+                label="Professional Summary"
+                rows={4}
+                value={personalInfo.summary}
+                onChange={(e) => setPersonalInfo({ ...personalInfo, summary: e.target.value })}
+              />
+            </div>
+          )}
+
+          {activeSection === 'experience' && (
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                <h2 className="text-lg font-black text-slate-900">Work Experience</h2>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  leftIcon={<Plus className="w-3.5 h-3.5" />}
+                  onClick={() =>
+                    setExperiences([
+                      ...experiences,
+                      {
+                        id: `exp-${Date.now()}`,
+                        role: '',
+                        company: '',
+                        location: '',
+                        startDate: '',
+                        endDate: 'Present',
+                        bullets: [''],
+                      },
+                    ])
+                  }
+                >
+                  Add Experience
+                </Button>
+              </div>
+
+              {experiences.map((exp, expIdx) => (
+                <div key={exp.id || expIdx} className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/90 flex flex-col gap-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-black text-slate-800">Experience #{expIdx + 1}</span>
+                    <button
+                      onClick={() => setExperiences(experiences.filter((_, i) => i !== expIdx))}
+                      className="text-xs text-rose-500 hover:text-rose-700 font-bold cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input
+                      label="Job Title / Role"
+                      placeholder="Senior Engineer"
+                      value={exp.role}
+                      onChange={(e) => {
+                        const updated = [...experiences];
+                        updated[expIdx].role = e.target.value;
+                        setExperiences(updated);
+                      }}
+                    />
+                    <Input
+                      label="Company Name"
+                      placeholder="Acme Corp"
+                      value={exp.company}
+                      onChange={(e) => {
+                        const updated = [...experiences];
+                        updated[expIdx].company = e.target.value;
+                        setExperiences(updated);
+                      }}
+                    />
+                    <Input
+                      label="Start Date"
+                      placeholder="Jan 2022"
+                      value={exp.startDate}
+                      onChange={(e) => {
+                        const updated = [...experiences];
+                        updated[expIdx].startDate = e.target.value;
+                        setExperiences(updated);
+                      }}
+                    />
+                    <Input
+                      label="End Date"
+                      placeholder="Present"
+                      value={exp.endDate}
+                      onChange={(e) => {
+                        const updated = [...experiences];
+                        updated[expIdx].endDate = e.target.value;
+                        setExperiences(updated);
+                      }}
+                    />
+                  </div>
+
+                  {/* Bullet Points */}
+                  <div className="flex flex-col gap-2 pt-2 border-t border-slate-200/80">
+                    <span className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Accomplishment Bullets</span>
+                    {exp.bullets.map((b, bIdx) => (
+                      <div key={bIdx} className="flex gap-2 items-start">
+                        <textarea
+                          rows={2}
+                          value={b}
+                          onChange={(e) => {
+                            const updated = [...experiences];
+                            updated[expIdx].bullets[bIdx] = e.target.value;
+                            setExperiences(updated);
+                          }}
+                          placeholder="Architected distributed backend pipelines delivering 40% latency reduction..."
+                          className="flex-1 text-xs p-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#048BA2] leading-relaxed resize-y"
+                        />
+                        <button
+                          type="button"
+                          title="Enhance with AI"
+                          onClick={() => handleEnhanceBullet('experience', expIdx, bIdx, b)}
+                          disabled={isEnhancing === `experience-${expIdx}-${bIdx}`}
+                          className="p-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-xl border border-indigo-200/80 transition-colors cursor-pointer shrink-0"
+                        >
+                          {isEnhancing === `experience-${expIdx}-${bIdx}` ? (
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Sparkles className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = [...experiences];
+                            updated[expIdx].bullets = updated[expIdx].bullets.filter((_, i) => i !== bIdx);
+                            setExperiences(updated);
+                          }}
+                          className="p-2 text-slate-400 hover:text-rose-500 rounded-xl cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = [...experiences];
+                        updated[expIdx].bullets.push('');
+                        setExperiences(updated);
+                      }}
+                      className="text-xs font-bold text-[#048BA2] hover:text-[#037488] self-start flex items-center gap-1 cursor-pointer mt-1"
+                    >
+                      <Plus className="w-3 h-3" /> Add Bullet Point
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeSection === 'projects' && (
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                <h2 className="text-lg font-black text-slate-900">Projects & Work</h2>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  leftIcon={<Plus className="w-3.5 h-3.5" />}
+                  onClick={() =>
+                    setProjects([
+                      ...projects,
+                      {
+                        id: `proj-${Date.now()}`,
+                        title: '',
+                        techStack: '',
+                        link: '',
+                        bullets: [''],
+                      },
+                    ])
+                  }
+                >
+                  Add Project
+                </Button>
+              </div>
+
+              {projects.map((proj, projIdx) => (
+                <div key={proj.id || projIdx} className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/90 flex flex-col gap-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-black text-slate-800">Project #{projIdx + 1}</span>
+                    <button
+                      onClick={() => setProjects(projects.filter((_, i) => i !== projIdx))}
+                      className="text-xs text-rose-500 hover:text-rose-700 font-bold cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input
+                      label="Project Name"
+                      placeholder="Autonomous Agent Orchestrator"
+                      value={proj.title}
+                      onChange={(e) => {
+                        const updated = [...projects];
+                        updated[projIdx].title = e.target.value;
+                        setProjects(updated);
+                      }}
+                    />
+                    <Input
+                      label="Technologies Used"
+                      placeholder="Next.js 16, TypeScript, pgvector"
+                      value={proj.techStack || ''}
+                      onChange={(e) => {
+                        const updated = [...projects];
+                        updated[projIdx].techStack = e.target.value;
+                        setProjects(updated);
+                      }}
+                    />
+                  </div>
+                  <Input
+                    label="Project Link / GitHub"
+                    placeholder="github.com/org/repo"
+                    value={proj.link || ''}
+                    onChange={(e) => {
+                      const updated = [...projects];
+                      updated[projIdx].link = e.target.value;
+                      setProjects(updated);
+                    }}
+                  />
+
+                  {/* Bullet Points */}
+                  <div className="flex flex-col gap-2 pt-2 border-t border-slate-200/80">
+                    <span className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Accomplishment Bullets</span>
+                    {proj.bullets.map((b, bIdx) => (
+                      <div key={bIdx} className="flex gap-2 items-start">
+                        <textarea
+                          rows={2}
+                          value={b}
+                          onChange={(e) => {
+                            const updated = [...projects];
+                            updated[projIdx].bullets[bIdx] = e.target.value;
+                            setProjects(updated);
+                          }}
+                          placeholder="Designed real-time state synchronization across distributed worker nodes..."
+                          className="flex-1 text-xs p-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#048BA2] leading-relaxed resize-y"
+                        />
+                        <button
+                          type="button"
+                          title="Enhance with AI"
+                          onClick={() => handleEnhanceBullet('projects', projIdx, bIdx, b)}
+                          disabled={isEnhancing === `projects-${projIdx}-${bIdx}`}
+                          className="p-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-xl border border-indigo-200/80 transition-colors cursor-pointer shrink-0"
+                        >
+                          {isEnhancing === `projects-${projIdx}-${bIdx}` ? (
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Sparkles className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = [...projects];
+                            updated[projIdx].bullets = updated[projIdx].bullets.filter((_, i) => i !== bIdx);
+                            setProjects(updated);
+                          }}
+                          className="p-2 text-slate-400 hover:text-rose-500 rounded-xl cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = [...projects];
+                        updated[projIdx].bullets.push('');
+                        setProjects(updated);
+                      }}
+                      className="text-xs font-bold text-[#048BA2] hover:text-[#037488] self-start flex items-center gap-1 cursor-pointer mt-1"
+                    >
+                      <Plus className="w-3 h-3" /> Add Bullet Point
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeSection === 'education' && (
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                <h2 className="text-lg font-black text-slate-900">Education</h2>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  leftIcon={<Plus className="w-3.5 h-3.5" />}
+                  onClick={() =>
+                    setEducation([
+                      ...education,
+                      {
+                        id: `edu-${Date.now()}`,
+                        institution: '',
+                        degree: '',
+                        location: '',
+                        startDate: '',
+                        endDate: '',
+                        gpa: '',
+                      },
+                    ])
+                  }
+                >
+                  Add Education
+                </Button>
+              </div>
+
+              {education.map((edu, eduIdx) => (
+                <div key={edu.id || eduIdx} className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/90 flex flex-col gap-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-black text-slate-800">Degree #{eduIdx + 1}</span>
+                    <button
+                      onClick={() => setEducation(education.filter((_, i) => i !== eduIdx))}
+                      className="text-xs text-rose-500 hover:text-rose-700 font-bold cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input
+                      label="University / Institution"
+                      placeholder="Stanford University"
+                      value={edu.institution}
+                      onChange={(e) => {
+                        const updated = [...education];
+                        updated[eduIdx].institution = e.target.value;
+                        setEducation(updated);
+                      }}
+                    />
+                    <Input
+                      label="Degree (B.S., M.S., Ph.D.)"
+                      placeholder="M.S."
+                      value={edu.degree}
+                      onChange={(e) => {
+                        const updated = [...education];
+                        updated[eduIdx].degree = e.target.value;
+                        setEducation(updated);
+                      }}
+                    />
+                    <Input
+                      label="Location / Campus"
+                      placeholder="Stanford, CA"
+                      value={edu.location || ''}
+                      onChange={(e) => {
+                        const updated = [...education];
+                        updated[eduIdx].location = e.target.value;
+                        setEducation(updated);
+                      }}
+                    />
+                    <Input
+                      label="Graduation Year / Dates"
+                      placeholder="2020 - 2022"
+                      value={edu.endDate || edu.startDate}
+                      onChange={(e) => {
+                        const updated = [...education];
+                        updated[eduIdx].endDate = e.target.value;
+                        setEducation(updated);
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeSection === 'skills' && (
+            <div className="flex flex-col gap-5">
+              <h2 className="text-lg font-black text-slate-900 border-b border-slate-200 pb-2">Skills & Tech Stack</h2>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="e.g. Next.js 16, TypeScript, pgvector"
+                  value={newSkillInput}
+                  onChange={(e) => setNewSkillInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddSkill();
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <Button variant="primary" size="md" onClick={handleAddSkill}>
+                  Add Skill
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-2">
+                {skills.map((sk) => (
+                  <span
+                    key={sk}
+                    className="px-3 py-1.5 bg-indigo-50 border border-indigo-200/80 text-indigo-900 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs"
+                  >
+                    {sk}
+                    <button onClick={() => handleRemoveSkill(sk)} className="text-indigo-400 hover:text-indigo-700 font-normal cursor-pointer">
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </main>
+        )}
+      </div>
+      
       {/* Interactive 30+ Resume Templates Gallery Modal with Real Photos & Search */}
       <Modal
         isOpen={isTemplateModalOpen}

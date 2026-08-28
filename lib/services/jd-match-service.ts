@@ -14,6 +14,8 @@
  */
 
 import { db } from '@/lib/db';
+import { getResumeWithSections } from '@/lib/services/resume-service';
+import { executeMultiProviderLLM } from '@/lib/services/llm-provider';
 
 export interface MatchedKeywordItem {
   name: string;
@@ -104,11 +106,8 @@ const TECH_TAXONOMY: { name: string; category: MatchedKeywordItem['category']; a
  * Main function to match a candidate's resume with a target Job Description
  */
 export async function matchResumeWithJD(resumeId: string, jdText: string): Promise<MatchResultOutput> {
-  // 1. Fetch Candidate's Resume & Sections from DB
-  const resume = await db.resume.findUnique({
-    where: { id: resumeId },
-    include: { sections: true },
-  });
+  // 1. Fetch Candidate's Resume & Sections reliably (DB + in-memory cache)
+  const resume = await getResumeWithSections(resumeId);
 
   // Extract parsed structured content
   let candidateName = 'Candidate';
@@ -154,13 +153,14 @@ export async function matchResumeWithJD(resumeId: string, jdText: string): Promi
 
   const jdLower = jdText.toLowerCase();
 
-  // 2. Check if external LLM API keys are provided (NVIDIA, OpenAI, Anthropic, OpenRouter)
+  // 2. Check for live LLM API keys (Groq LPU / NVIDIA / OpenAI / Anthropic / OpenRouter)
+  const groqKey = process.env.GROQ_API_KEY;
   const nvidiaKey = process.env.NVIDIA_API_KEY;
   const openAiKey = process.env.OPENAI_API_KEY;
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const openRouterKey = process.env.OPENROUTER_API_KEY;
 
-  if (nvidiaKey || openAiKey || anthropicKey || openRouterKey) {
+  if (groqKey || nvidiaKey || openAiKey || anthropicKey || openRouterKey) {
     try {
       const llmResult = await callLlmMatcher({
         candidateName,
@@ -171,6 +171,7 @@ export async function matchResumeWithJD(resumeId: string, jdText: string): Promi
         parsedSummary,
         candidateFullText,
         jdText,
+        groqKey,
         nvidiaKey,
         openAiKey,
         anthropicKey,
@@ -429,9 +430,6 @@ async function callLlmMatcher({
   parsedProjects,
   candidateFullText,
   jdText,
-  nvidiaKey,
-  openAiKey,
-  openRouterKey,
 }: any): Promise<MatchResultOutput | null> {
   const prompt = `You are a Principal Technical Recruiter and ATS Parser Architect. Compare this candidate's resume with the target job description.
 
@@ -457,98 +455,50 @@ Respond ONLY with a valid JSON object matching this schema:
     "keywordDensity": number (0-100)
   },
   "fitGrade": "Exceptional Fit" | "Strong Fit" | "Moderate Fit" | "Needs Tailoring",
-  "fitSummary": "string",
+  "fitSummary": "1-2 sentence executive match rationale",
   "matchedKeywords": [
-    { "name": "string", "category": "core_skill"|"framework"|"cloud_devops"|"architecture"|"ai_data"|"tool", "candidateContext": "string" }
+    { "name": "Exact skill name (e.g. Next.js, React, TypeScript, PgVector)", "category": "core_skill"|"framework"|"cloud_devops"|"architecture"|"ai_data"|"tool", "candidateContext": "Where verified in candidate history" }
   ],
   "missingKeywordsDetailed": [
-    { "name": "string", "category": "core_skill"|"framework"|"cloud_devops"|"architecture"|"ai_data"|"tool", "importance": "critical"|"high"|"medium", "recommendation": "string" }
+    { "name": "Exact missing skill name", "category": "core_skill"|"framework"|"cloud_devops"|"architecture"|"ai_data"|"tool", "importance": "critical"|"high"|"medium", "recommendation": "Actionable advice to bridge gap" }
   ],
   "experienceGaps": ["string"],
   "tailoringRecommendations": [
     {
-      "targetSection": "string",
-      "roleOrProject": "string",
-      "originalSnippet": "exact bullet from candidate",
-      "tailoredRewrite": "impactful rewrite incorporating missing requirement",
-      "reason": "string",
+      "targetSection": "Experience Section",
+      "roleOrProject": "Role at Company",
+      "originalSnippet": "Original bullet from candidate",
+      "tailoredRewrite": "Executive quantified rewrite incorporating missing requirement",
+      "reason": "Why this improves ATS match",
       "keywordsAdded": ["string"]
     }
   ],
   "parsedRequirements": {
-    "title": "string",
+    "title": "Exact Role Title from JD",
     "requiredSkills": ["string"],
     "preferredSkills": ["string"],
     "minYearsExperience": number,
     "coreDomain": "string"
+  },
+  "tailoredResumeSnapshot": {
+    "suggestedSummary": "Executive summary tailored to this target JD",
+    "suggestedSkills": ["Clean list of real technical skills"],
+    "tailoredBullets": [
+      { "role": "string", "company": "string", "originalBullet": "string", "tailoredBullet": "string" }
+    ]
   }
 }`;
 
-  let endpoint = 'https://api.openai.com/v1/chat/completions';
-  let apiKey = openAiKey;
-  let model = 'gpt-4o-mini';
-
-  if (nvidiaKey) {
-    endpoint = 'https://integrate.api.nvidia.com/v1/chat/completions';
-    apiKey = nvidiaKey;
-    model = 'meta/llama-3.3-70b-instruct';
-  } else if (openRouterKey) {
-    endpoint = 'https://openrouter.ai/api/v1/chat/completions';
-    apiKey = openRouterKey;
-    model = 'google/gemini-2.0-flash-001';
-  } else if (openAiKey) {
-    endpoint = 'https://api.openai.com/v1/chat/completions';
-    apiKey = openAiKey;
-    model = 'gpt-4o-mini';
-  }
-
-  // 5-second fast timeout so the UI is lightning fast and never hangs
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 6000);
-
   try {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a Principal Technical Recruiter and ATS Parser Architect. Always return pure JSON with valid keys matching the requested schema. Do not write markdown preface.',
-          },
-          { role: 'user', content: prompt },
-        ],
-        temperature: 0.2,
-        max_tokens: 1800,
-      }),
+    const llmRes = await executeMultiProviderLLM({
+      systemPrompt: 'You are an elite ATS Recruiter Matcher. Always return accurate, realistic matches with real tech skills only. Never treat generic words like "App" or "Engineer" as technical skills.',
+      userPrompt: prompt,
+      jsonMode: true,
+      maxTokens: 3000,
     });
 
-    clearTimeout(timeoutId);
-
-    if (!res.ok) {
-      throw new Error(`LLM Match API failed with status ${res.status}`);
-    }
-
-    const json = await res.json();
-    let rawContent = json.choices?.[0]?.message?.content || '';
-
-    // Clean JSON markdown if wrapped in ```json ... ```
-    if (rawContent.includes('```')) {
-      rawContent = rawContent.replace(/```(?:json)?([\s\S]*?)```/g, '$1').trim();
-    }
-    const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('No JSON object found in LLM response');
-    }
-
-    const parsedData = JSON.parse(jsonMatch[0]);
-
-    if (!parsedData.matchPercentage || !parsedData.subScores) {
+    const parsedData = llmRes.json;
+    if (!parsedData || !parsedData.matchPercentage || !parsedData.subScores) {
       throw new Error('Incomplete JSON schema returned by LLM');
     }
 
@@ -557,11 +507,11 @@ Respond ONLY with a valid JSON object matching this schema:
     return {
       ...parsedData,
       missingKeywords: missingList,
-      skillGaps: missingList.map((m: string) => `${m} hands-on deployment`),
+      skillGaps: missingList.map((m: string) => `${m} in production scale`),
       recommendations: (parsedData.tailoringRecommendations || []).map((t: any) => `${t.reason || ''} -> "${t.tailoredRewrite || ''}"`),
     };
   } catch (err) {
-    clearTimeout(timeoutId);
+    console.warn('callLlmMatcher error:', err);
     throw err;
   }
 }
@@ -582,11 +532,17 @@ function extractRoleTitleFromJd(jdText: string): string {
 }
 
 /**
- * Extract custom high-frequency capitalized/tech keywords from JD
+ * Extract custom high-frequency capitalized/tech keywords from JD with strong stoplist
  */
 function extractCustomKeywordsFromJd(jdText: string): string[] {
   const words = jdText.match(/\b[A-Z][a-zA-Z0-9.+#/-]{2,20}\b/g) || [];
-  const commonWords = new Set(['The', 'You', 'We', 'Our', 'Job', 'Role', 'Requirements', 'Experience', 'Years', 'Team', 'Company', 'Work', 'Full', 'Time', 'Remote', 'About', 'With', 'Have', 'Will', 'Must', 'Plus', 'Strong']);
+  const commonWords = new Set([
+    'The', 'You', 'We', 'Our', 'Job', 'Role', 'Requirements', 'Experience', 'Years', 'Team',
+    'Company', 'Work', 'Full', 'Time', 'Remote', 'About', 'With', 'Have', 'Will', 'Must',
+    'Plus', 'Strong', 'Engineer', 'Developer', 'Architect', 'Scientist', 'Lead', 'Manager',
+    'Director', 'App', 'Application', 'System', 'Platform', 'Labs', 'Vercel', 'Openai',
+    'Stripe', 'Figma', 'Google', 'Amazon', 'Stack', 'Senior', 'Junior', 'Staff', 'Principal'
+  ]);
   const unique = Array.from(new Set(words.filter((w) => !commonWords.has(w))));
   return unique.slice(0, 8);
 }

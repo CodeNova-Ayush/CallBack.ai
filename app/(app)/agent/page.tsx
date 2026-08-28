@@ -1,5 +1,15 @@
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AgentRootPage() {
-  redirect('/agent/demo-resume-alex-1');
+  const router = useRouter();
+
+  useEffect(() => {
+    const activeId = typeof window !== 'undefined' ? localStorage.getItem('active_resume_id') : null;
+    router.replace(`/agent/${activeId || 'demo-resume-alex-1'}`);
+  }, [router]);
+
+  return null;
 }

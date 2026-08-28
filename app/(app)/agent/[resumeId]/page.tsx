@@ -36,6 +36,8 @@ import { Badge } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { Textarea } from '@/components/ui/Input';
 import { ChatBubble, ChatMessage } from '@/components/ui/ChatBubble';
+import { ThreeAgentCanvas } from '@/components/agent/ThreeAgentCanvas';
+import { AgentLoadingState } from '@/components/agent/AgentLoadingState';
 
 export default function AgentPage() {
   const router = useRouter();
@@ -292,6 +294,10 @@ export default function AgentPage() {
         setRawResumeText('');
         setCustomCandidateName('');
         setSelectedLocalFile(null);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('active_resume_id', data.resumeId);
+          window.dispatchEvent(new Event('active_resume_changed'));
+        }
         router.push(`/agent/${data.resumeId}`);
       } else {
         alert(data.error || 'Failed to parse resume file.');
@@ -427,9 +433,12 @@ export default function AgentPage() {
         {/* =========================================================================
             RIGHT COLUMN: Main Conversational Chat Workspace (flex-1)
            ========================================================================= */}
-        <main className="flex-1 flex flex-col bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden h-full">
+        <main className="flex-1 flex flex-col bg-white/95 backdrop-blur-xl border border-slate-200/80 rounded-3xl shadow-sm overflow-hidden h-full relative">
+          {/* Interactive 3D Three.js Agent Constellation Canvas */}
+          <ThreeAgentCanvas className="absolute inset-0 pointer-events-none z-0 opacity-90" />
+
           {/* Header Bar */}
-          <header className="h-16 border-b border-slate-200 px-6 flex items-center justify-between bg-white shrink-0">
+          <header className="h-16 border-b border-slate-200/80 px-6 flex items-center justify-between bg-white/80 backdrop-blur-md shrink-0 relative z-10">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-[#048BA2] text-white flex items-center justify-center font-bold shadow-xs">
                 <Bot className="w-4 h-4" />
@@ -444,7 +453,7 @@ export default function AgentPage() {
                   </span>
                 </div>
                 <span className="text-[11px] text-slate-500 font-medium line-clamp-1">
-                  Powered by NVIDIA NIM (Llama 3.3 70B) & RAG Vector Index
+                  Powered by NVIDIA NIM & Groq LPU Vector RAG
                 </span>
               </div>
             </div>
@@ -452,7 +461,7 @@ export default function AgentPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCopyChat}
-                className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-colors border border-transparent hover:border-slate-200 cursor-pointer"
+                className="p-2 text-slate-500 hover:text-slate-950 hover:bg-slate-100/80 rounded-xl transition-colors border border-transparent hover:border-slate-200 cursor-pointer"
                 title="Copy Transcript"
               >
                 {isCopied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
@@ -469,22 +478,12 @@ export default function AgentPage() {
           </header>
 
           {/* Messages Scroll Stream */}
-          <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-3.5 bg-slate-50/50">
+          <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-3.5 bg-slate-50/40 relative z-10">
             {messages.map((msg) => (
               <ChatBubble key={msg.id} message={msg} />
             ))}
 
-            {isLoading && (
-              <div className="flex items-start gap-3 my-2 animate-in fade-in duration-200">
-                <div className="w-8 h-8 rounded-xl bg-[#048BA2] text-white flex items-center justify-center shrink-0 shadow-xs animate-pulse">
-                  <Bot className="w-4 h-4" />
-                </div>
-                <div className="px-4 py-3 bg-white border border-slate-200 rounded-2xl rounded-tl-xs shadow-xs text-xs font-semibold text-slate-600 flex items-center gap-2.5">
-                  <RefreshCw className="w-3.5 h-3.5 text-[#048BA2] animate-spin" />
-                  Grounding response against candidate verified records...
-                </div>
-              </div>
-            )}
+            {isLoading && <AgentLoadingState candidateName={candidateName} />}
             <div ref={messagesEndRef} />
           </div>
 

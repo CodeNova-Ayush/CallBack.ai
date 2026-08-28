@@ -1,4 +1,6 @@
 import { db } from '@/lib/db';
+import { getResumeWithSections } from '@/lib/services/resume-service';
+import { executeMultiProviderLLM } from '@/lib/services/llm-provider';
 
 export interface ATSAnalysisOutput {
   atsScore: number;
@@ -19,7 +21,7 @@ export interface ATSAnalysisOutput {
 }
 
 export async function analyzeResume(resumeId: string): Promise<ATSAnalysisOutput> {
-  let candidateName = 'Alex Rivera';
+  let candidateName = 'Ayush Mishra';
   let candidateTitle = 'Staff AI Engineer';
   let personalInfo: any = null;
   let experiences: any[] = [];
@@ -29,20 +31,17 @@ export async function analyzeResume(resumeId: string): Promise<ATSAnalysisOutput
   let resumeTitle = 'Resume Document';
 
   try {
-    const resume = await db.resume.findUnique({
-      where: { id: resumeId },
-      include: { sections: true, user: true },
-    });
+    const resume = await getResumeWithSections(resumeId);
 
     if (resume?.title) resumeTitle = resume.title;
 
     if (resume?.sections) {
       for (const s of resume.sections) {
         try {
-          const parsed = JSON.parse(s.content);
+          const parsed = typeof s.content === 'string' ? JSON.parse(s.content) : s.content;
           if (s.sectionType === 'personal_info') personalInfo = parsed;
-          else if (s.sectionType === 'experience') experiences = parsed;
-          else if (s.sectionType === 'education') education = parsed;
+          else if (s.sectionType === 'experience') experiences = Array.isArray(parsed) ? parsed : [parsed];
+          else if (s.sectionType === 'education') education = Array.isArray(parsed) ? parsed : [parsed];
           else if (s.sectionType === 'skills') {
             if (Array.isArray(parsed)) {
               skills = parsed;
@@ -52,7 +51,7 @@ export async function analyzeResume(resumeId: string): Promise<ATSAnalysisOutput
               skills = [];
             }
           }
-          else if (s.sectionType === 'projects') projects = parsed;
+          else if (s.sectionType === 'projects') projects = Array.isArray(parsed) ? parsed : [parsed];
         } catch {
           // ignore
         }
@@ -99,36 +98,66 @@ export async function analyzeResume(resumeId: string): Promise<ATSAnalysisOutput
   const metricRatio = allBullets.length > 0 ? metricBullets.length / allBullets.length : 0.8;
   const impactScore = Math.round(75 + metricRatio * 23);
 
-  // Generate dynamic grammar & action-verb suggestions from candidate's real bullets
-  const grammarIssues: { original: string; suggestion: string; reason: string }[] = [];
+  // Generate dynamic grammar & action-verb suggestions from candidate's real bullets using Multi-Provider LLM
+  let grammarIssues: { original: string; suggestion: string; reason: string }[] = [];
 
-  for (const bullet of allBullets) {
-    if (/^responsible for/i.test(bullet)) {
-      grammarIssues.push({
-        original: bullet,
-        suggestion: bullet.replace(/^responsible for/i, 'Spearheaded and directed').replace(/(\.|$)/, ' with measurable team velocity improvements.'),
-        reason: 'Replaces passive "Responsible for" with high-conviction executive action verb.',
-      });
-    } else if (/^worked on/i.test(bullet)) {
-      grammarIssues.push({
-        original: bullet,
-        suggestion: bullet.replace(/^worked on/i, 'Architected and engineered').replace(/(\.|$)/, ' cutting production latency by 35%.'),
-        reason: 'Adds quantitative impact metrics and senior technical verbs.',
-      });
-    } else if (/^helped with/i.test(bullet)) {
-      grammarIssues.push({
-        original: bullet,
-        suggestion: bullet.replace(/^helped with/i, 'Co-developed and scaled'),
-        reason: 'Strengthens ownership signal for senior technical evaluations.',
-      });
+  if (allBullets.length > 0) {
+    try {
+      const llmRes = await executeMultiProviderLLM({
+        systemPrompt: 'You are a Principal ATS Resume Auditor and Executive Recruiter. Return pure JSON only.',
+        userPrompt: `Audit these resume bullets and return 3 high-impact executive rewrites:
+${allBullets.slice(0, 3).join('\n')}
+
+Return JSON:
+{
+  "grammarIssues": [
+    {
+      "original": "Original bullet",
+      "suggestion": "Executive, quantified rewrite starting with strong action verb",
+      "reason": "Why this improves ATS ranking"
     }
-    if (grammarIssues.length >= 3) break;
+  ]
+}`,
+        jsonMode: true,
+      });
+
+      if (llmRes?.json?.grammarIssues && Array.isArray(llmRes.json.grammarIssues)) {
+        grammarIssues = llmRes.json.grammarIssues;
+      }
+    } catch (e) {
+      console.warn('Live ATS bullet audit completed with semantic rules:', e);
+    }
+  }
+
+  if (grammarIssues.length === 0) {
+    for (const bullet of allBullets) {
+      if (/^responsible for/i.test(bullet)) {
+        grammarIssues.push({
+          original: bullet,
+          suggestion: bullet.replace(/^responsible for/i, 'Spearheaded and directed').replace(/(\.|$)/, ' with measurable team velocity improvements.'),
+          reason: 'Replaces passive "Responsible for" with high-conviction executive action verb.',
+        });
+      } else if (/^worked on/i.test(bullet)) {
+        grammarIssues.push({
+          original: bullet,
+          suggestion: bullet.replace(/^worked on/i, 'Architected and engineered').replace(/(\.|$)/, ' cutting production latency by 35%.'),
+          reason: 'Adds quantitative impact metrics and senior technical verbs.',
+        });
+      } else if (/^helped with/i.test(bullet)) {
+        grammarIssues.push({
+          original: bullet,
+          suggestion: bullet.replace(/^helped with/i, 'Co-developed and scaled'),
+          reason: 'Strengthens ownership signal for senior technical evaluations.',
+        });
+      }
+      if (grammarIssues.length >= 3) break;
+    }
   }
 
   if (grammarIssues.length === 0 && allBullets.length > 0) {
     grammarIssues.push({
       original: allBullets[0],
-      suggestion: `${allBullets[0]} (delivering 99.99% SLA uptime across multi-region clusters)`,
+      suggestion: `${allBullets[0]} (delivering 99.99% SLA uptime across production workloads)`,
       reason: 'Enhance high-visibility first bullet with definitive uptime and scale metrics.',
     });
   }

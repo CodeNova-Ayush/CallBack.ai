@@ -94,7 +94,8 @@ export async function askLivingResumeAgent(resumeId: string, question: string): 
     .filter(Boolean)
     .join('\n');
 
-  // Check for live LLM inference keys (NVIDIA, OpenAI, Anthropic, OpenRouter)
+  // Live LLM inference keys (Groq LPU / Anthropic / NVIDIA / OpenAI / OpenRouter)
+  const groqKey = process.env.GROQ_API_KEY;
   const nvidiaKey = process.env.NVIDIA_API_KEY;
   const openAiKey = process.env.OPENAI_API_KEY;
   const openRouterKey = process.env.OPENROUTER_API_KEY;
@@ -122,7 +123,54 @@ Respond ONLY with a valid JSON object matching this schema:
   ]
 }`;
 
-  // 1. Anthropic API
+  // 1. High-Speed Groq LPU (250ms latency)
+  if (groqKey) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${groqKey}`,
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: 'openai/gpt-oss-120b',
+          temperature: 0.2,
+          max_tokens: 800,
+          response_format: { type: 'json_object' },
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: question }
+          ],
+        }),
+      });
+
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const json = await res.json();
+        let rawText = json.choices?.[0]?.message?.content || '';
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed.reply) {
+            return {
+              reply: parsed.reply,
+              citedSources: Array.isArray(parsed.citedSources) ? parsed.citedSources : [],
+              isGrounded: true,
+            };
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Groq Living Agent chat note:', err);
+    }
+  }
+
+  // 2. Anthropic API
   if (anthropicKey) {
     try {
       const controller = new AbortController();

@@ -89,7 +89,12 @@ export default function OpportunitiesPage() {
   const [candidateTitle, setCandidateTitle] = useState('Senior Full-Stack & AI Systems Engineer');
   const [baseSummary, setBaseSummary] = useState('');
   const [allResumes, setAllResumes] = useState<{ id: string; title: string }[]>([]);
-  const [activeResumeId, setActiveResumeId] = useState('demo-resume-alex-1');
+  const [activeResumeId, setActiveResumeId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('active_resume_id') || 'demo-resume-alex-1';
+    }
+    return 'demo-resume-alex-1';
+  });
 
   // Tailoring Modal State
   const [selectedPosting, setSelectedPosting] = useState<JobOpportunity | null>(null);
@@ -107,14 +112,18 @@ export default function OpportunitiesPage() {
 
   // Load Resumes
   useEffect(() => {
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('active_resume_id') : null;
     fetch('/api/resumes')
       .then((res) => res.json())
       .then((data) => {
         if (data.resumes && Array.isArray(data.resumes)) {
           setAllResumes(data.resumes);
-          if (data.resumes.length > 0) {
-            setActiveResumeId(data.resumes[0].id);
-          }
+          const targetId = stored && data.resumes.some((r: any) => r.id === stored)
+            ? stored
+            : data.resumes.length > 0
+            ? data.resumes[0].id
+            : 'demo-resume-alex-1';
+          setActiveResumeId(targetId);
         }
       })
       .catch(() => {});

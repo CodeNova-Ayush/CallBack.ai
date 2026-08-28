@@ -32,7 +32,12 @@ interface SkillNode {
 export default function SkillGraphPage() {
   const [candidateName, setCandidateName] = useState('Ayush Mishra');
   const [allResumes, setAllResumes] = useState<{ id: string; title: string }[]>([]);
-  const [activeResumeId, setActiveResumeId] = useState('demo-resume-alex-1');
+  const [activeResumeId, setActiveResumeId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('active_resume_id') || 'demo-resume-alex-1';
+    }
+    return 'demo-resume-alex-1';
+  });
   const [skills, setSkills] = useState<SkillNode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -46,25 +51,34 @@ export default function SkillGraphPage() {
   const [newSkillEvidenceSnippet, setNewSkillEvidenceSnippet] = useState('');
 
   const CATEGORIES = [
-    'All',
-    'AI & Vector Architectures',
-    'Languages & Core Stack',
-    'Frontend & Web Frameworks',
-    'Databases & Storage',
-    'Cloud & Distributed Infrastructure',
+    { id: 'All', label: 'All' },
+    { id: 'AI & Vector Architectures', label: 'AI & Vector' },
+    { id: 'Languages & Core Stack', label: 'Languages' },
+    { id: 'Frontend & Web Frameworks', label: 'Frontend' },
+    { id: 'Databases & Storage', label: 'Databases' },
+    { id: 'Cloud & Distributed Infrastructure', label: 'Cloud & Infra' },
   ];
 
   // Load Resumes
   useEffect(() => {
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('active_resume_id') : null;
     fetch('/api/resumes')
       .then((res) => res.json())
       .then((data) => {
         if (data.resumes && Array.isArray(data.resumes)) {
           setAllResumes(data.resumes);
-          if (data.resumes.length > 0) setActiveResumeId(data.resumes[0].id);
+          const targetId = stored && data.resumes.some((r: any) => r.id === stored)
+            ? stored
+            : data.resumes.length > 0
+            ? data.resumes[0].id
+            : 'demo-resume-alex-1';
+          setActiveResumeId(targetId);
+          loadSkillGraph(targetId);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        loadSkillGraph('demo-resume-alex-1');
+      });
   }, []);
 
   // Load Active Resume Skills & Evidence
@@ -246,31 +260,33 @@ export default function SkillGraphPage() {
       </div>
 
       {/* Category Pills & Search */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 rounded-2xl p-3 shadow-xs">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-          {CATEGORIES.map((cat, idx) => (
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-3.5 shadow-sm">
+        <div className="flex items-center gap-2 overflow-x-auto pt-2.5 pb-2 px-1 scrollbar-none">
+          {CATEGORIES.map((cat) => (
             <button
-              key={idx}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer ${
-                selectedCategory === cat
-                  ? 'bg-[#048BA2] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`pushable-btn cursor-pointer shrink-0 ${
+                selectedCategory === cat.id ? 'pushable-btn-teal' : ''
               }`}
             >
-              {cat}
+              <span className="pushable-shadow"></span>
+              <span className="pushable-edge"></span>
+              <span className="pushable-front !py-1.5 !px-3.5 !text-xs !font-bold whitespace-nowrap">
+                {cat.label}
+              </span>
             </button>
           ))}
         </div>
 
-        <div className="relative w-full sm:w-64">
+        <div className="relative w-full lg:w-72 shrink-0">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search skill nodes..."
-            className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-900 focus:outline-none focus:border-[#048BA2]"
+            className="w-full text-xs font-medium bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-slate-900 focus:outline-none focus:border-[#048BA2] transition-colors"
           />
         </div>
       </div>
@@ -362,9 +378,9 @@ export default function SkillGraphPage() {
               onChange={(e) => setNewSkillCategory(e.target.value)}
               className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#048BA2]"
             >
-              {CATEGORIES.filter((c) => c !== 'All').map((cat, idx) => (
-                <option key={idx} value={cat}>
-                  {cat}
+              {CATEGORIES.filter((c) => c.id !== 'All').map((cat, idx) => (
+                <option key={idx} value={cat.id}>
+                  {cat.id}
                 </option>
               ))}
             </select>

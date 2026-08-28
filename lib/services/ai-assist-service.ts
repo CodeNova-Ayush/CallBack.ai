@@ -32,6 +32,7 @@ export async function enhanceBulletPoint({
   role = 'Software Engineer',
   targetSkill,
 }: EnhanceBulletRequest): Promise<EnhanceBulletResponse> {
+  const groqKey = process.env.GROQ_API_KEY;
   const nvidiaKey = process.env.NVIDIA_API_KEY;
   const openAiKey = process.env.OPENAI_API_KEY;
   const openRouterKey = process.env.OPENROUTER_API_KEY;
@@ -50,7 +51,54 @@ Return ONLY a valid JSON object matching this schema:
   "extractedSkills": ["Skill 1", "Skill 2", "Skill 3"]
 }`;
 
-  // 1. Anthropic API
+  // 1. High-Speed Groq LPU (300ms response time)
+  if (groqKey) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${groqKey}`,
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: 'openai/gpt-oss-120b',
+          temperature: 0.2,
+          max_tokens: 600,
+          response_format: { type: 'json_object' },
+          messages: [
+            { role: 'system', content: 'You are an elite ATS resume optimization engine. Return pure JSON only.' },
+            { role: 'user', content: prompt }
+          ],
+        }),
+      });
+
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const json = await res.json();
+        let rawText = json.choices?.[0]?.message?.content || '';
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed.enhancedBullet) {
+            return {
+              enhancedBullet: parsed.enhancedBullet,
+              improvements: Array.isArray(parsed.improvements) ? parsed.improvements : ['Transformed into quantified executive accomplishment'],
+              extractedSkills: Array.isArray(parsed.extractedSkills) && parsed.extractedSkills.length > 0 ? parsed.extractedSkills : ['Engineering', 'System Design'],
+            };
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Groq bullet enhance note:', err);
+    }
+  }
+
+  // 2. Anthropic API
   if (anthropicKey) {
     try {
       const controller = new AbortController();

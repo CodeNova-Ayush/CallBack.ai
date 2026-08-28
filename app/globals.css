@@ -96,6 +96,160 @@
   animation-play-state: paused;
 }
 
+/* Cyber Tech Scan & Circuit Line Animations */
+@keyframes scanMove {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.animate-scan {
+  animation: scanMove 2.5s linear infinite;
+}
+
+@keyframes lineGrowLeft {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+}
+
+.animate-cyber-line-1 {
+  transform-origin: left;
+  animation: lineGrowLeft 3s linear infinite;
+}
+
+.animate-cyber-line-2 {
+  transform-origin: right;
+  animation: lineGrowLeft 3s linear infinite 1s;
+}
+
+.animate-cyber-line-3 {
+  transform-origin: left;
+  animation: lineGrowLeft 3s linear infinite 2s;
+}
+
+/* 3D Tactile Pushable Keycap Buttons (Uiverse by cssbuttons-io) */
+.pushable-btn {
+  position: relative;
+  display: inline-block;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  outline-offset: 4px;
+  transition: filter 250ms;
+  user-select: none;
+  touch-action: manipulation;
+  text-decoration: none;
+}
+
+.pushable-btn .pushable-shadow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.08);
+  will-change: transform;
+  transform: translateY(2px);
+  transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+
+.pushable-btn .pushable-edge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to left,
+    #cbd5e1 0%,
+    #94a3b8 8%,
+    #94a3b8 92%,
+    #cbd5e1 100%
+  );
+}
+
+.pushable-btn .pushable-front {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 7px 16px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #0f172a;
+  background: #ffffff;
+  will-change: transform;
+  transform: translateY(-2px);
+  transition: transform 300ms cubic-bezier(0.3, 0.7, 0.4, 1);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.pushable-btn:hover {
+  filter: brightness(103%);
+}
+
+.pushable-btn:hover .pushable-front {
+  color: #048BA2;
+  border-color: #048BA2;
+  transform: translateY(-4px);
+  transition: transform 200ms cubic-bezier(0.3, 0.7, 0.4, 1.2);
+}
+
+.pushable-btn:active .pushable-front {
+  transform: translateY(0px);
+  transition: transform 34ms;
+}
+
+.pushable-btn:hover .pushable-shadow {
+  transform: translateY(3px);
+  transition: transform 200ms cubic-bezier(0.3, 0.7, 0.4, 1.2);
+}
+
+.pushable-btn:active .pushable-shadow {
+  transform: translateY(1px);
+  transition: transform 34ms;
+}
+
+/* Primary Teal Pushable Variant */
+.pushable-btn-teal .pushable-edge {
+  background: linear-gradient(
+    to left,
+    #023642 0%,
+    #035869 8%,
+    #035869 92%,
+    #023642 100%
+  );
+}
+
+.pushable-btn-teal .pushable-front {
+  color: #ffffff;
+  background: #048BA2;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.pushable-btn-teal:hover .pushable-front {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
 /* ATS Pure A4 Print Stylesheet */
 @media print {
   @page {
@@ -159,4 +313,62 @@
   .page-break {
     page-break-before: always;
   }
+}
+
+/* ==========================================================================
+   🌀 Agent Radiating Blade Spinner (Uiverse by PriyanshuGupta28)
+   ========================================================================== */
+.agent-radiating-spinner {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.agent-radiating-spinner div {
+  position: absolute;
+  width: 2px;
+  height: 6px;
+  background: #048BA2;
+  border-radius: 2px;
+  transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1%));
+  animation: spinner-fzua35 1s calc(var(--delay) * 1s) infinite ease;
+}
+
+.agent-radiating-spinner div:nth-child(1) { --delay: 0.1; --rotation: 36; --translation: 150; }
+.agent-radiating-spinner div:nth-child(2) { --delay: 0.2; --rotation: 72; --translation: 150; }
+.agent-radiating-spinner div:nth-child(3) { --delay: 0.3; --rotation: 108; --translation: 150; }
+.agent-radiating-spinner div:nth-child(4) { --delay: 0.4; --rotation: 144; --translation: 150; }
+.agent-radiating-spinner div:nth-child(5) { --delay: 0.5; --rotation: 180; --translation: 150; }
+.agent-radiating-spinner div:nth-child(6) { --delay: 0.6; --rotation: 216; --translation: 150; }
+.agent-radiating-spinner div:nth-child(7) { --delay: 0.7; --rotation: 252; --translation: 150; }
+.agent-radiating-spinner div:nth-child(8) { --delay: 0.8; --rotation: 288; --translation: 150; }
+.agent-radiating-spinner div:nth-child(9) { --delay: 0.9; --rotation: 324; --translation: 150; }
+.agent-radiating-spinner div:nth-child(10) { --delay: 1; --rotation: 360; --translation: 150; }
+
+@keyframes spinner-fzua35 {
+  0%, 10%, 20%, 30%, 50%, 60%, 70%, 80%, 90%, 100% {
+    transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1%));
+  }
+  50% {
+    transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1.5%));
+  }
+}
+
+/* Continuous Infinite Marquee */
+@keyframes marquee-infinite {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee-infinite {
+  display: flex;
+  width: max-content;
+  animation: marquee-infinite 32s linear infinite;
+}
+
+.animate-marquee-infinite:hover {
+  animation-play-state: paused;
 }

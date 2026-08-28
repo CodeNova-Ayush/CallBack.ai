@@ -101,18 +101,19 @@ export default function ImportOldResumePage() {
       setSelectedFile(file);
       if (!resumeTitle) setResumeTitle(file.name.replace(/\.[^/.]+$/, ''));
       
-      // Read text content from TXT/PDF preview simulation
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result as string;
-        setPastedText(text || SAMPLE_OLD_RESUMES[0].text);
-      };
-      reader.readAsText(file);
+      // Read text content only for text-based files
+      if (file.name.endsWith('.txt') || file.name.endsWith('.json') || file.name.endsWith('.md')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const text = event.target?.result as string;
+          setPastedText(text || '');
+        };
+        reader.readAsText(file);
+      }
     }
   };
 
   const handleRunATSAudit = async () => {
-    const rawText = pastedText.trim() || SAMPLE_OLD_RESUMES[0].text;
     setIsProcessing(true);
     setProcessingStep(1);
 
@@ -147,8 +148,12 @@ export default function ImportOldResumePage() {
 
       setTimeout(() => {
         setIsProcessing(false);
-        if (data.success) {
+        if (data.success && data.resumeId) {
           setAnalysisResult(data);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('active_resume_id', data.resumeId);
+            window.dispatchEvent(new Event('active_resume_changed'));
+          }
         } else {
           alert(data.error || 'Failed to analyze resume');
         }

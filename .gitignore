@@ -51,3 +51,7 @@ dev.db
 .windsurf
 skills-lock.json
 
+
+# clerk configuration (can include secrets)
+/.clerk/
+scratch/
