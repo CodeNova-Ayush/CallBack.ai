@@ -41,10 +41,10 @@ export async function executeMultiProviderLLM(options: LLMRequestOptions): Promi
   if (groqKey) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
 
       const body: any = {
-        model: 'openai/gpt-oss-120b',
+        model: 'llama-3.3-70b-versatile',
         temperature,
         max_tokens: maxTokens,
         messages: [
@@ -98,11 +98,66 @@ export async function executeMultiProviderLLM(options: LLMRequestOptions): Promi
     }
   }
 
-  // 2. Secondary: OpenRouter
+  // 2. Secondary: NVIDIA NIM
+  if (nvidiaKey && nvidiaKey.length > 20) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+      const res = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${nvidiaKey}`,
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: 'meta/llama-3.3-70b-instruct',
+          temperature,
+          max_tokens: maxTokens,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+        }),
+      });
+
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const jsonRes = await res.json();
+        let rawContent = jsonRes.choices?.[0]?.message?.content || '';
+        let parsedJson = null;
+
+        if (jsonMode) {
+          if (rawContent.includes('```')) {
+            rawContent = rawContent.replace(/```(?:json)?([\s\S]*?)```/g, '$1').trim();
+          }
+          const match = rawContent.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+          if (match) {
+            try {
+              parsedJson = JSON.parse(match[0]);
+            } catch {}
+          }
+        }
+
+        return {
+          content: rawContent,
+          json: parsedJson,
+          provider: 'nvidia',
+          latencyMs: Date.now() - start,
+        };
+      }
+    } catch (nvErr) {
+      console.warn('NVIDIA attempt note:', nvErr);
+    }
+  }
+
+  // 3. Tertiary: OpenRouter
   if (openRouterKey) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
 
       const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -153,28 +208,34 @@ export async function executeMultiProviderLLM(options: LLMRequestOptions): Promi
     }
   }
 
-  // 3. Tertiary: NVIDIA NIM
-  if (nvidiaKey && nvidiaKey.length > 20) {
+  // 4. OpenAI fallback
+  if (openAiKey) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-      const res = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+      const body: any = {
+        model: 'gpt-4o-mini',
+        temperature,
+        max_tokens: maxTokens,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+      };
+
+      if (jsonMode) {
+        body.response_format = { type: 'json_object' };
+      }
+
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${nvidiaKey}`,
+          Authorization: `Bearer ${openAiKey}`,
         },
         signal: controller.signal,
-        body: JSON.stringify({
-          model: 'nvidia/nemotron-3.5-lightning-30b-a3b',
-          temperature,
-          max_tokens: maxTokens,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-        }),
+        body: JSON.stringify(body),
       });
 
       clearTimeout(timeoutId);
@@ -199,12 +260,65 @@ export async function executeMultiProviderLLM(options: LLMRequestOptions): Promi
         return {
           content: rawContent,
           json: parsedJson,
-          provider: 'nvidia',
+          provider: 'openai',
           latencyMs: Date.now() - start,
         };
       }
-    } catch (nvErr) {
-      console.warn('NVIDIA attempt note:', nvErr);
+    } catch (oaiErr) {
+      console.warn('OpenAI attempt note:', oaiErr);
+    }
+  }
+
+  // 5. Anthropic fallback
+  if (anthropicKey) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: 'claude-3-haiku-20240307',
+          max_tokens: maxTokens,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userPrompt }],
+        }),
+      });
+
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const jsonRes = await res.json();
+        let rawContent = jsonRes.content?.[0]?.text || '';
+        let parsedJson = null;
+
+        if (jsonMode) {
+          if (rawContent.includes('```')) {
+            rawContent = rawContent.replace(/```(?:json)?([\s\S]*?)```/g, '$1').trim();
+          }
+          const match = rawContent.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+          if (match) {
+            try {
+              parsedJson = JSON.parse(match[0]);
+            } catch {}
+          }
+        }
+
+        return {
+          content: rawContent,
+          json: parsedJson,
+          provider: 'anthropic',
+          latencyMs: Date.now() - start,
+        };
+      }
+    } catch (antErr) {
+      console.warn('Anthropic attempt note:', antErr);
     }
   }
 

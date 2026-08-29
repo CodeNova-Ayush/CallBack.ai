@@ -89,10 +89,14 @@ export default function AgentPage() {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [activeResumeId]);
 
   // Load Active Resume Profile & Initialize Agent
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('active_resume_id', activeResumeId);
+    }
+
     fetch(`/api/resumes/${activeResumeId}`)
       .then((res) => res.json())
       .then((data) => {
@@ -111,12 +115,15 @@ export default function AgentPage() {
               const parsed = JSON.parse(pi.content);
               if (parsed.fullName) name = parsed.fullName;
               if (parsed.summary) summary = parsed.summary;
+              if (parsed.title) title = parsed.title;
             } catch {}
           }
           if (exp) {
             try {
               const parsedExp = JSON.parse(exp.content);
-              if (parsedExp?.[0]?.role) title = `${parsedExp[0].role} (${parsedExp[0].company || ''})`;
+              if (parsedExp?.[0]?.role && title === 'Software Engineer & AI Builder') {
+                title = `${parsedExp[0].role}${parsedExp[0].company ? ` (${parsedExp[0].company})` : ''}`;
+              }
             } catch {}
           }
           if (sk) {
@@ -142,7 +149,7 @@ export default function AgentPage() {
           // Initial Greetings
           setMessages([
             {
-              id: 'init-msg',
+              id: `init-msg-${activeResumeId}`,
               role: 'assistant',
               content: `Hello! I am ${name}'s Living Candidate Agent powered by NVIDIA Llama 3.3. I am grounded strictly in ${name}'s verified records, project repositories, and technical skills (${title}). Ask me anything about ${name}'s engineering experience, latency benchmarks, or stack!`,
               citedSources: [
@@ -353,7 +360,14 @@ export default function AgentPage() {
                 <div className="relative">
                   <select
                     value={activeResumeId}
-                    onChange={(e) => router.push(`/agent/${e.target.value}`)}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      if (typeof window !== 'undefined') {
+                        localStorage.setItem('active_resume_id', selectedId);
+                        window.dispatchEvent(new Event('active_resume_changed'));
+                      }
+                      router.push(`/agent/${selectedId}`);
+                    }}
                     className="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:border-[#048BA2] cursor-pointer appearance-none pr-8"
                   >
                     {allResumes.map((r) => (

@@ -97,7 +97,34 @@ export async function GET(request: Request) {
       },
       orderBy: { updatedAt: 'desc' },
       take: 10,
-    });
+    }).catch(() => []);
+
+    const resumeMap = new Map<string, any>();
+    for (const r of resumes) {
+      resumeMap.set(r.id, r);
+    }
+
+    // Merge in-memory resumes
+    const { memoryResumesCache, defaultCandidateResume } = await import('@/lib/services/resume-service');
+    for (const [id, r] of memoryResumesCache.entries()) {
+      if (!resumeMap.has(id)) {
+        resumeMap.set(id, {
+          id: r.id,
+          title: r.title,
+          updatedAt: new Date(),
+        });
+      }
+    }
+
+    if (resumeMap.size === 0) {
+      resumeMap.set(defaultCandidateResume.id, {
+        id: defaultCandidateResume.id,
+        title: defaultCandidateResume.title,
+        updatedAt: new Date(),
+      });
+    }
+
+    const mergedResumes = Array.from(resumeMap.values());
 
     let latestMatch = null;
     if (resumeId) {
@@ -109,7 +136,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      resumes,
+      resumes: mergedResumes,
       latestMatch,
     });
   } catch (error: any) {

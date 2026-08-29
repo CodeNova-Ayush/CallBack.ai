@@ -165,25 +165,42 @@ export async function getResumeWithSections(resumeId: string) {
       memoryResumesCache.set(resume.id, resume);
       return resume;
     }
+  } catch (error) {
+    console.warn('Database findUnique resume note:', error);
+  }
 
-    // Fallback to first available resume in DB
-    const firstResume = await db.resume.findFirst({
+  // 3. If demo resume explicitly requested
+  if (resumeId === 'demo-resume-alex-1') {
+    return {
+      ...defaultCandidateResume,
+      id: 'demo-resume-alex-1',
+    };
+  }
+
+  // 4. Try latest in-memory resume
+  const inMemoryValues = Array.from(memoryResumesCache.values());
+  if (inMemoryValues.length > 0) {
+    return inMemoryValues[inMemoryValues.length - 1];
+  }
+
+  // 5. Try latest in DB
+  try {
+    const latestResume = await db.resume.findFirst({
+      orderBy: { updatedAt: 'desc' },
       include: {
         sections: { orderBy: { order: 'asc' } },
         analysisResults: { orderBy: { createdAt: 'desc' }, take: 1 },
         verificationClaims: true,
       },
     });
-
-    if (firstResume) {
-      memoryResumesCache.set(firstResume.id, firstResume);
-      return firstResume;
+    if (latestResume) {
+      memoryResumesCache.set(latestResume.id, latestResume);
+      return latestResume;
     }
-  } catch (error) {
-    console.warn('Database query note (using resilient candidate fallback):', error);
+  } catch (err) {
+    console.warn('Database findFirst resume note:', err);
   }
 
-  // 3. Resilient fallback to default structured candidate data
   return {
     ...defaultCandidateResume,
     id: resumeId || defaultCandidateResume.id,

@@ -206,8 +206,9 @@ export default function BuilderPage(props: { params: Promise<{ resumeId: string 
   const [skills, setSkills] = useState<string[]>(initialData.skills);
   const [newSkillInput, setNewSkillInput] = useState('');
 
-  // 1. Load from Browser Local Storage on mount
+  // 1. Load from Browser Local Storage or Database on mount
   useEffect(() => {
+    let loadedFromLocal = false;
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('callback_ai_saved_resume_' + resumeId);
@@ -220,10 +221,59 @@ export default function BuilderPage(props: { params: Promise<{ resumeId: string 
           if (parsed.skills && parsed.skills.length > 0) setSkills(parsed.skills);
           if (parsed.selectedTemplate) setSelectedTemplate(parsed.selectedTemplate);
           setLastSavedTime('Loaded from Local Storage');
+          loadedFromLocal = true;
         }
       } catch (e) {
         console.error('Error loading resume from local storage:', e);
       }
+    }
+
+    // If not loaded from local storage, fetch from server API
+    if (!loadedFromLocal) {
+      fetch(`/api/resumes/${resumeId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.resume?.sections) {
+            const pi = data.resume.sections.find((s: any) => s.sectionType === 'personal_info');
+            const exp = data.resume.sections.find((s: any) => s.sectionType === 'experience');
+            const edu = data.resume.sections.find((s: any) => s.sectionType === 'education');
+            const proj = data.resume.sections.find((s: any) => s.sectionType === 'projects');
+            const sk = data.resume.sections.find((s: any) => s.sectionType === 'skills');
+
+            if (pi) {
+              try {
+                const parsed = typeof pi.content === 'string' ? JSON.parse(pi.content) : pi.content;
+                if (parsed.fullName) setPersonalInfo(parsed);
+              } catch {}
+            }
+            if (exp) {
+              try {
+                const parsed = typeof exp.content === 'string' ? JSON.parse(exp.content) : exp.content;
+                if (Array.isArray(parsed) && parsed.length > 0) setExperiences(parsed);
+              } catch {}
+            }
+            if (edu) {
+              try {
+                const parsed = typeof edu.content === 'string' ? JSON.parse(edu.content) : edu.content;
+                if (Array.isArray(parsed) && parsed.length > 0) setEducation(parsed);
+              } catch {}
+            }
+            if (proj) {
+              try {
+                const parsed = typeof proj.content === 'string' ? JSON.parse(proj.content) : proj.content;
+                if (Array.isArray(parsed) && parsed.length > 0) setProjects(parsed);
+              } catch {}
+            }
+            if (sk) {
+              try {
+                const parsed = typeof sk.content === 'string' ? JSON.parse(sk.content) : sk.content;
+                if (Array.isArray(parsed) && parsed.length > 0) setSkills(parsed);
+              } catch {}
+            }
+            setLastSavedTime('Loaded from Profile');
+          }
+        })
+        .catch((err) => console.error('Builder resume fetch error:', err));
     }
   }, [resumeId]);
 
