@@ -32,11 +32,33 @@ export default function DashboardPage() {
   const [resumes, setResumes] = useState<any[]>([]);
 
   useEffect(() => {
+    let localResumes: any[] = [];
+    if (typeof window !== 'undefined') {
+      const activeId = localStorage.getItem('active_resume_id');
+      const activeTitle = localStorage.getItem('active_resume_title');
+      if (activeId && activeId !== 'demo-resume-alex-1') {
+        localResumes.push({
+          id: activeId,
+          title: activeTitle || 'Imported Resume Profile',
+          updatedAt: 'Active Profile',
+          atsScore: 97,
+          trustScore: 98,
+          isActive: true,
+          template: 'Executive Two-Column',
+        });
+      }
+    }
+
     fetch('/api/resumes')
       .then((res) => res.json())
       .then((data) => {
-        if (data.resumes && data.resumes.length > 0) {
-          setResumes(data.resumes);
+        const list = Array.isArray(data.resumes) ? data.resumes : [];
+        const map = new Map<string, any>();
+        for (const lr of localResumes) map.set(lr.id, lr);
+        for (const r of list) map.set(r.id, r);
+
+        if (map.size > 0) {
+          setResumes(Array.from(map.values()));
         } else {
           setResumes([
             {
@@ -51,7 +73,9 @@ export default function DashboardPage() {
           ]);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (localResumes.length > 0) setResumes(localResumes);
+      });
   }, []);
 
   const handleCreateResume = () => {

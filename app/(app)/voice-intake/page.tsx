@@ -25,7 +25,12 @@ export default function VoiceIntakePage() {
   const router = useRouter();
 
   // State
-  const [candidateName, setCandidateName] = useState('Ayush Mishra');
+  const [candidateName, setCandidateName] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('active_candidate_name') || 'Candidate';
+    }
+    return 'Candidate';
+  });
   const [allResumes, setAllResumes] = useState<{ id: string; title: string }[]>([]);
   const [activeResumeId, setActiveResumeId] = useState<string>(() => {
     if (typeof window !== 'undefined') {
@@ -55,6 +60,11 @@ export default function VoiceIntakePage() {
             ? data.resumes[0].id
             : 'demo-resume-alex-1';
           setActiveResumeId(targetId);
+
+          const matchedResume = data.resumes.find((r: any) => r.id === targetId);
+          if (matchedResume?.title) {
+            setCandidateName(matchedResume.title.split('—')[0].trim());
+          }
         }
       })
       .catch(() => {});

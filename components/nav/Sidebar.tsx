@@ -74,22 +74,73 @@ export const Sidebar: React.FC = () => {
     };
   }, []);
 
-  const [candidateName, setCandidateName] = React.useState('Alex Rivera');
-  const [candidateEmail, setCandidateEmail] = React.useState('alex.rivera@neuralflow.ai');
-  const userFetchedRef = React.useRef(false);
+  const [candidateName, setCandidateName] = React.useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('active_candidate_name') || 'Candidate Profile';
+    }
+    return 'Candidate Profile';
+  });
+  const [candidateEmail, setCandidateEmail] = React.useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('active_candidate_email') || 'candidate@callback.ai';
+    }
+    return 'candidate@callback.ai';
+  });
+
+  const syncIdentityFromStorage = () => {
+    if (typeof window !== 'undefined') {
+      const storedName = localStorage.getItem('active_candidate_name');
+      const storedEmail = localStorage.getItem('active_candidate_email');
+      const storedId = localStorage.getItem('active_resume_id');
+      if (storedName) setCandidateName(storedName);
+      if (storedEmail) setCandidateEmail(storedEmail);
+      if (storedId) setActiveResumeId(storedId);
+    }
+  };
+
+  React.useEffect(() => {
+    syncIdentityFromStorage();
+    const handleStorageChange = () => {
+      syncIdentityFromStorage();
+    };
+    window.addEventListener('active_resume_changed', handleStorageChange);
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('active_resume_changed', handleStorageChange);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   React.useEffect(() => {
     if (!isLoaded || !user) return;
 
     const primaryEmail = user.primaryEmailAddress?.emailAddress || user.emailAddresses[0]?.emailAddress;
-    const name = user.fullName || user.firstName || primaryEmail?.split('@')[0] || 'Signed-in user';
-    setCandidateName(name);
-    if (primaryEmail) setCandidateEmail(primaryEmail);
+    const name = user.fullName || user.firstName || primaryEmail?.split('@')[0];
+    if (name && candidateName === 'Candidate Profile') setCandidateName(name);
+    if (primaryEmail && candidateEmail === 'candidate@callback.ai') setCandidateEmail(primaryEmail);
   }, [isLoaded, user]);
 
   React.useEffect(() => {
-    if (activeResumeId && !userFetchedRef.current) {
-      userFetchedRef.current = true;
+    if (activeResumeId) {
+      // 1. Check local storage
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('callback_ai_saved_resume_' + activeResumeId);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (parsed.personalInfo?.fullName) {
+              setCandidateName(parsed.personalInfo.fullName);
+              localStorage.setItem('active_candidate_name', parsed.personalInfo.fullName);
+            }
+            if (parsed.personalInfo?.email) {
+              setCandidateEmail(parsed.personalInfo.email);
+              localStorage.setItem('active_candidate_email', parsed.personalInfo.email);
+            }
+          } catch {}
+        }
+      }
+
+      // 2. Fetch API
       fetch(`/api/resumes/${activeResumeId}`)
         .then((res) => res.json())
         .then((data) => {
@@ -108,7 +159,12 @@ export const Sidebar: React.FC = () => {
             if (!name && data.resume.title) {
               name = data.resume.title.split('—')[0].trim();
             }
-            if (name) setCandidateName(name);
+            if (name) {
+              setCandidateName(name);
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('active_candidate_name', name);
+              }
+            }
           }
         })
         .catch(() => {});

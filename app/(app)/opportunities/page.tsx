@@ -132,18 +132,30 @@ export default function OpportunitiesPage() {
   // Load Active Resume Data
   useEffect(() => {
     if (!activeResumeId) return;
+
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('callback_ai_saved_resume_' + activeResumeId);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.personalInfo?.fullName) {
+            setCandidateName(parsed.personalInfo.fullName);
+            setBaseSummary(parsed.personalInfo.summary || `${parsed.personalInfo.fullName} is an experienced technology professional.`);
+          }
+        }
+      } catch (e) {}
+    }
+
     fetch(`/api/resumes/${activeResumeId}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.resume) {
           const pi = data.resume.sections?.find((s: any) => s.sectionType === 'personal_info');
-          const exp = data.resume.sections?.find((s: any) => s.sectionType === 'experience');
-
           let name = 'Candidate';
           let summary = '';
           if (pi) {
             try {
-              const parsed = JSON.parse(pi.content);
+              const parsed = typeof pi.content === 'string' ? JSON.parse(pi.content) : pi.content;
               if (parsed.fullName) name = parsed.fullName;
               if (parsed.summary) summary = parsed.summary;
             } catch {}
