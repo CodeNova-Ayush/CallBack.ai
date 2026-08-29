@@ -79,18 +79,37 @@ export default function AgentPage() {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  const applyCandidateState = (pi: any, expList: any[], skList: any[], defaultTitle?: string) => {
-    let name = pi?.fullName || 'Candidate';
-    let title = pi?.title || defaultTitle || 'Software Engineer & AI Builder';
-    let summary = pi?.summary || '';
-    let skillsList: string[] = Array.isArray(skList) ? skList : [];
+  const applyCandidateState = (pi: any, expList: any[], skList: any[], defaultTitle?: string, resumeTitle?: string) => {
+    let name = pi?.fullName;
+    if (!name || name === 'Candidate') {
+      if (resumeTitle && resumeTitle.includes('—')) {
+        name = resumeTitle.split('—')[0].trim();
+      }
+    }
+    if (!name || name === 'Candidate') {
+      if (typeof window !== 'undefined') {
+        const storedName = localStorage.getItem('active_candidate_name');
+        if (storedName) name = storedName;
+      }
+    }
+    if (!name) name = 'Candidate';
 
-    if (expList && expList.length > 0 && (!pi?.title || title === 'Software Engineer & AI Builder')) {
+    let title = pi?.title;
+    if (!title || title === 'Software Engineer & AI Builder') {
+      if (resumeTitle && resumeTitle.includes('—')) {
+        title = resumeTitle.split('—')[1].trim();
+      }
+    }
+    if ((!title || title === 'Software Engineer & AI Builder') && expList && expList.length > 0) {
       const topExp = expList[0];
       if (topExp?.role) {
         title = `${topExp.role}${topExp.company ? ` (${topExp.company})` : ''}`;
       }
     }
+    if (!title) title = defaultTitle || 'Senior Software Engineer & AI Builder';
+
+    let summary = pi?.summary || '';
+    let skillsList: string[] = Array.isArray(skList) ? skList : [];
 
     setCandidateName(name);
     setCandidateTitle(title);
@@ -115,14 +134,32 @@ export default function AgentPage() {
 
   // Load Resumes List for Quick Switcher
   useEffect(() => {
+    let localResumes: any[] = [];
+    if (typeof window !== 'undefined') {
+      const activeId = localStorage.getItem('active_resume_id');
+      const activeTitle = localStorage.getItem('active_resume_title');
+      if (activeId && activeId !== 'demo-resume-alex-1') {
+        localResumes.push({
+          id: activeId,
+          title: activeTitle || 'Imported Candidate Profile',
+        });
+      }
+    }
+
     fetch('/api/resumes')
       .then((res) => res.json())
       .then((data) => {
-        if (data.resumes && Array.isArray(data.resumes)) {
-          setAllResumes(data.resumes);
+        const list = Array.isArray(data.resumes) ? data.resumes : [];
+        const map = new Map<string, any>();
+        for (const lr of localResumes) map.set(lr.id, lr);
+        for (const r of list) map.set(r.id, r);
+        if (map.size > 0) {
+          setAllResumes(Array.from(map.values()));
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (localResumes.length > 0) setAllResumes(localResumes);
+      });
   }, [activeResumeId]);
 
   // Load Active Resume Profile & Initialize Agent
@@ -137,7 +174,9 @@ export default function AgentPage() {
         return;
       }
 
-      localStorage.setItem('active_resume_id', activeResumeId);
+      if (activeResumeId !== 'demo-resume-alex-1') {
+        localStorage.setItem('active_resume_id', activeResumeId);
+      }
 
       // 2. Check local storage cache for this resume
       try {
@@ -145,7 +184,13 @@ export default function AgentPage() {
         if (saved) {
           const parsed = JSON.parse(saved);
           if (parsed.personalInfo?.fullName) {
-            applyCandidateState(parsed.personalInfo, parsed.experiences, parsed.skills, parsed.personalInfo.title);
+            applyCandidateState(
+              parsed.personalInfo,
+              parsed.experiences,
+              parsed.skills,
+              parsed.personalInfo.title,
+              localStorage.getItem('active_resume_title') || undefined
+            );
             loadedFromLocal = true;
           }
         }
@@ -185,7 +230,13 @@ export default function AgentPage() {
           }
 
           if (parsedPi?.fullName || !loadedFromLocal) {
-            applyCandidateState(parsedPi, parsedExp, parsedSk, data.resume.title?.split('—')?.[1]?.trim());
+            applyCandidateState(
+              parsedPi,
+              parsedExp,
+              parsedSk,
+              data.resume.title?.split('—')?.[1]?.trim(),
+              data.resume.title
+            );
           }
         }
       })
@@ -409,9 +460,15 @@ export default function AgentPage() {
                     value={activeResumeId}
                     onChange={(e) => {
                       const selectedId = e.target.value;
+                      const matched = allResumes.find((r) => r.id === selectedId);
                       if (typeof window !== 'undefined') {
                         localStorage.setItem('active_resume_id', selectedId);
+                        if (matched?.title) {
+                          localStorage.setItem('active_resume_title', matched.title);
+                          localStorage.setItem('active_candidate_name', matched.title.split('—')[0].trim());
+                        }
                         window.dispatchEvent(new Event('active_resume_changed'));
+                        window.dispatchEvent(new Event('storage'));
                       }
                       router.push(`/agent/${selectedId}`);
                     }}

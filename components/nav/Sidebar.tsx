@@ -49,9 +49,11 @@ export const Sidebar: React.FC = () => {
 
   React.useEffect(() => {
     if (resumeIdMatch) {
-      setActiveResumeId(resumeIdMatch[2]);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('active_resume_id', resumeIdMatch[2]);
+      if (resumeIdMatch[2] !== 'demo-resume-alex-1') {
+        setActiveResumeId(resumeIdMatch[2]);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('active_resume_id', resumeIdMatch[2]);
+        }
       }
     } else if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('active_resume_id');
@@ -176,7 +178,7 @@ export const Sidebar: React.FC = () => {
     .map((n) => n[0])
     .join('')
     .toUpperCase()
-    .slice(0, 2) || 'AR';
+    .slice(0, 2) || 'CP';
 
   const navGroups: NavGroup[] = [
     {
@@ -184,22 +186,22 @@ export const Sidebar: React.FC = () => {
       items: [
         { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
         { name: 'Upload Old Resume', href: '/import-resume', icon: Upload, badge: 'ATS Audit' },
-        { name: 'Resume Builder', href: `/builder/${activeResumeId}`, icon: FileText },
+        { name: 'Resume Builder', href: '/builder', icon: FileText },
       ],
     },
     {
       groupName: 'Insights',
       items: [
-        { name: 'ATS Analyzer', href: `/analyzer/${activeResumeId}`, icon: Sparkles },
-        { name: 'JD Matcher', href: `/jd-match/${activeResumeId}`, icon: Target },
+        { name: 'ATS Analyzer', href: '/analyzer', icon: Sparkles },
+        { name: 'JD Matcher', href: '/jd-match', icon: Target },
       ],
     },
     {
       groupName: 'Agentic Layer',
       items: [
-        { name: 'Living Resume Agent', href: `/agent/${activeResumeId}`, icon: Bot, badge: 'Flagship' },
+        { name: 'Living Resume Agent', href: '/agent', icon: Bot, badge: 'Flagship' },
         { name: 'Import Resume to Talk', href: '/import-resume?mode=agent', icon: FileUp, badge: 'Talk AI' },
-        { name: 'Trust Score & Claims', href: `/trust-score/${activeResumeId}`, icon: ShieldCheck },
+        { name: 'Trust Score & Claims', href: '/trust-score', icon: ShieldCheck },
         { name: 'Recruiter Companion', href: '/recruiter-dashboard', icon: UserCheck },
         { name: 'Opportunities & Apply', href: '/opportunities', icon: Briefcase },
         { name: 'Persistent Skill Graph', href: '/skill-graph', icon: GitGraph },
