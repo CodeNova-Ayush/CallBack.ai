@@ -43,6 +43,15 @@ export default function TrustScorePage() {
 
   const fetchVerification = async () => {
     setIsLoading(true);
+
+    if (typeof window !== 'undefined') {
+      const storedActiveId = localStorage.getItem('active_resume_id');
+      if (activeResumeId === 'demo-resume-alex-1' && storedActiveId && storedActiveId !== 'demo-resume-alex-1') {
+        router.replace(`/trust-score/${storedActiveId}`);
+        return;
+      }
+    }
+
     try {
       const res = await fetch(`/api/verification/${activeResumeId}`);
       const data = await res.json();

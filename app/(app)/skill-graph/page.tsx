@@ -84,11 +84,29 @@ export default function SkillGraphPage() {
   // Load Active Resume Skills & Evidence
   const loadSkillGraph = async (rId: string) => {
     setIsLoading(true);
+    let parsedSkills: string[] = [];
+    let experiences: any[] = [];
+    let projects: any[] = [];
+    let name = 'Candidate';
+
+    // 1. Check local storage
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('callback_ai_saved_resume_' + rId);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.personalInfo?.fullName) name = parsed.personalInfo.fullName;
+          if (Array.isArray(parsed.skills)) parsedSkills = parsed.skills;
+          if (Array.isArray(parsed.experiences)) experiences = parsed.experiences;
+          if (Array.isArray(parsed.projects)) projects = parsed.projects;
+        }
+      } catch (e) {}
+    }
+
     try {
       const res = await fetch(`/api/resumes/${rId}`);
       const data = await res.json();
       if (data.resume) {
-        let name = 'Candidate';
         const pInfo = data.resume.sections?.find((s: any) => s.sectionType === 'personal_info');
         const skSec = data.resume.sections?.find((s: any) => s.sectionType === 'skills');
         const expSec = data.resume.sections?.find((s: any) => s.sectionType === 'experience');
@@ -96,89 +114,88 @@ export default function SkillGraphPage() {
 
         if (pInfo) {
           try {
-            const parsed = JSON.parse(pInfo.content);
+            const parsed = typeof pInfo.content === 'string' ? JSON.parse(pInfo.content) : pInfo.content;
             if (parsed.fullName) name = parsed.fullName;
           } catch {}
         }
         if (data.resume.title && name === 'Candidate') {
           name = data.resume.title.split('—')[0].trim();
         }
-        setCandidateName(name);
 
-        let parsedSkills: string[] = [];
         if (skSec) {
           try {
-            const parsed = JSON.parse(skSec.content);
+            const parsed = typeof skSec.content === 'string' ? JSON.parse(skSec.content) : skSec.content;
             if (Array.isArray(parsed)) parsedSkills = parsed;
             else if (parsed.categories) parsedSkills = parsed.categories.flatMap((c: any) => c.items || []);
           } catch {}
         }
 
-        let experiences: any[] = [];
         if (expSec) {
           try {
-            experiences = JSON.parse(expSec.content);
+            const e = typeof expSec.content === 'string' ? JSON.parse(expSec.content) : expSec.content;
+            experiences = Array.isArray(e) ? e : [e];
           } catch {}
         }
 
-        let projects: any[] = [];
         if (projSec) {
           try {
-            projects = JSON.parse(projSec.content);
+            const p = typeof projSec.content === 'string' ? JSON.parse(projSec.content) : projSec.content;
+            projects = Array.isArray(p) ? p : [p];
           } catch {}
         }
-
-        const nodes: SkillNode[] = parsedSkills.map((skName, idx) => {
-          let category = 'Languages & Core Stack';
-          const skLower = skName.toLowerCase();
-          if (skLower.includes('ai') || skLower.includes('vector') || skLower.includes('rag') || skLower.includes('llama') || skLower.includes('langchain') || skLower.includes('claude') || skLower.includes('prompt')) {
-            category = 'AI & Vector Architectures';
-          } else if (skLower.includes('react') || skLower.includes('next') || skLower.includes('vue') || skLower.includes('tailwind') || skLower.includes('html') || skLower.includes('css')) {
-            category = 'Frontend & Web Frameworks';
-          } else if (skLower.includes('postgres') || skLower.includes('sql') || skLower.includes('prisma') || skLower.includes('redis') || skLower.includes('mongo')) {
-            category = 'Databases & Storage';
-          } else if (skLower.includes('aws') || skLower.includes('docker') || skLower.includes('kubernetes') || skLower.includes('ci/cd') || skLower.includes('cloud') || skLower.includes('linux')) {
-            category = 'Cloud & Distributed Infrastructure';
-          }
-
-          const matchedExp = experiences.find((e) => e.bullets?.some((b: string) => b.toLowerCase().includes(skLower)));
-          const matchedProj = projects.find((p) => p.techStack?.toLowerCase().includes(skLower) || p.title?.toLowerCase().includes(skLower));
-
-          const evidence: { title: string; snippet: string }[] = [];
-          if (matchedExp) {
-            evidence.push({
-              title: `Experience — ${matchedExp.company || matchedExp.role}`,
-              snippet: matchedExp.bullets?.[0] || 'Demonstrated production experience',
-            });
-          }
-          if (matchedProj) {
-            evidence.push({
-              title: `Project — ${matchedProj.title}`,
-              snippet: matchedProj.bullets?.[0] || matchedProj.techStack || 'Technical architecture component',
-            });
-          }
-          if (evidence.length === 0) {
-            evidence.push({
-              title: `Verified Experience Record`,
-              snippet: `Hands-on competency in ${skName} verified across resume milestones.`,
-            });
-          }
-
-          return {
-            name: skName,
-            category,
-            signal: Math.min(98, 88 + (idx % 10)),
-            evidence,
-          };
-        });
-
-        setSkills(nodes);
       }
     } catch (err) {
-      console.error('Error loading skill graph:', err);
-    } finally {
-      setIsLoading(false);
+      console.warn('Skill graph fetch note:', err);
     }
+
+    setCandidateName(name);
+
+    const nodes: SkillNode[] = parsedSkills.map((skName, idx) => {
+      let category = 'Languages & Core Stack';
+      const skLower = skName.toLowerCase();
+      if (skLower.includes('ai') || skLower.includes('vector') || skLower.includes('rag') || skLower.includes('llama') || skLower.includes('langchain') || skLower.includes('claude') || skLower.includes('prompt')) {
+        category = 'AI & Vector Architectures';
+      } else if (skLower.includes('react') || skLower.includes('next') || skLower.includes('vue') || skLower.includes('tailwind') || skLower.includes('html') || skLower.includes('css')) {
+        category = 'Frontend & Web Frameworks';
+      } else if (skLower.includes('postgres') || skLower.includes('sql') || skLower.includes('prisma') || skLower.includes('redis') || skLower.includes('mongo')) {
+        category = 'Databases & Storage';
+      } else if (skLower.includes('aws') || skLower.includes('docker') || skLower.includes('kubernetes') || skLower.includes('ci/cd') || skLower.includes('cloud') || skLower.includes('linux')) {
+        category = 'Cloud & Distributed Infrastructure';
+      }
+
+      const matchedExp = experiences.find((e) => e.bullets?.some((b: string) => b.toLowerCase().includes(skLower)));
+      const matchedProj = projects.find((p) => p.techStack?.toLowerCase().includes(skLower) || p.title?.toLowerCase().includes(skLower));
+
+      const evidence: { title: string; snippet: string }[] = [];
+      if (matchedExp) {
+        evidence.push({
+          title: `Experience — ${matchedExp.company || matchedExp.role}`,
+          snippet: matchedExp.bullets?.[0] || 'Demonstrated production experience',
+        });
+      }
+      if (matchedProj) {
+        evidence.push({
+          title: `Project — ${matchedProj.title}`,
+          snippet: matchedProj.bullets?.[0] || matchedProj.techStack || 'Technical architecture component',
+        });
+      }
+      if (evidence.length === 0) {
+        evidence.push({
+          title: `Verified Experience Record`,
+          snippet: `Hands-on competency in ${skName} verified across resume milestones.`,
+        });
+      }
+
+      return {
+        name: skName,
+        category,
+        signal: Math.min(98, 88 + (idx % 10)),
+        evidence,
+      };
+    });
+
+    setSkills(nodes);
+    setIsLoading(false);
   };
 
   useEffect(() => {

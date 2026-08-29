@@ -114,19 +114,40 @@ export default function JDMatchPage(props: { params: Promise<{ resumeId: string 
 
   // Initial Load: Fetch Resume Details & Prior Match
   useEffect(() => {
+    let name = 'Candidate';
+    let title = 'Software Engineer';
+    let email = '';
+
+    if (typeof window !== 'undefined') {
+      const storedActiveId = localStorage.getItem('active_resume_id');
+      if (resumeId === 'demo-resume-alex-1' && storedActiveId && storedActiveId !== 'demo-resume-alex-1') {
+        router.replace(`/jd-match/${storedActiveId}`);
+        return;
+      }
+
+      try {
+        const saved = localStorage.getItem('callback_ai_saved_resume_' + resumeId);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.personalInfo?.fullName) name = parsed.personalInfo.fullName;
+          if (parsed.personalInfo?.title) title = parsed.personalInfo.title;
+          if (parsed.personalInfo?.email) email = parsed.personalInfo.email;
+          setCandidateInfo({ name, title, email });
+        }
+      } catch (e) {}
+    }
+
     fetch(`/api/resumes/${resumeId}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.resume) {
-          let name = 'Candidate';
-          let title = 'Software Engineer';
-          let email = '';
           if (data.resume.sections) {
             const pInfo = data.resume.sections.find((s: any) => s.sectionType === 'personal_info');
             if (pInfo) {
               try {
                 const parsed = typeof pInfo.content === 'string' ? JSON.parse(pInfo.content) : pInfo.content;
                 if (parsed.fullName) name = parsed.fullName;
+                if (parsed.title) title = parsed.title;
                 if (parsed.email) email = parsed.email;
               } catch {}
             }
@@ -134,7 +155,7 @@ export default function JDMatchPage(props: { params: Promise<{ resumeId: string 
             if (expSec) {
               try {
                 const parsed = typeof expSec.content === 'string' ? JSON.parse(expSec.content) : expSec.content;
-                if (parsed[0]?.role) title = parsed[0].role;
+                if (parsed[0]?.role && title === 'Software Engineer') title = parsed[0].role;
               } catch {}
             }
           }
@@ -156,7 +177,7 @@ export default function JDMatchPage(props: { params: Promise<{ resumeId: string 
 
     // Auto-run initial match
     handleRunMatch(resumeId, PRESET_JOBS[0].text);
-  }, [resumeId]);
+  }, [resumeId, router]);
 
   // Execute Match
   const handleRunMatch = async (targetResumeId = resumeId, targetJdText = jdText) => {

@@ -23,52 +23,66 @@ export interface AgentAnswer {
   isGrounded: boolean;
 }
 
-export async function askLivingResumeAgent(resumeId: string, question: string): Promise<AgentAnswer> {
+export async function askLivingResumeAgent(
+  resumeId: string,
+  question: string,
+  candidateContext?: {
+    personalInfo?: any;
+    experiences?: any[];
+    education?: any[];
+    skills?: string[];
+    projects?: any[];
+  }
+): Promise<AgentAnswer> {
   let candidateName = 'Candidate';
-  let personalInfo: any = null;
-  let experiences: any[] = [];
-  let education: any[] = [];
-  let skills: string[] = [];
-  let projects: any[] = [];
+  let personalInfo: any = candidateContext?.personalInfo || null;
+  let experiences: any[] = candidateContext?.experiences || [];
+  let education: any[] = candidateContext?.education || [];
+  let skills: string[] = candidateContext?.skills || [];
+  let projects: any[] = candidateContext?.projects || [];
   let certifications: string[] = [];
 
-  try {
-    const resume = await getResumeWithSections(resumeId);
+  if (!personalInfo) {
+    try {
+      const resume = await getResumeWithSections(resumeId);
 
-    if (resume?.sections) {
-      for (const s of resume.sections) {
-        try {
-          const parsed = typeof s.content === 'string' ? JSON.parse(s.content) : s.content;
-          if (s.sectionType === 'personal_info') personalInfo = parsed;
-          else if (s.sectionType === 'experience') experiences = Array.isArray(parsed) ? parsed : [parsed];
-          else if (s.sectionType === 'education') education = Array.isArray(parsed) ? parsed : [parsed];
-          else if (s.sectionType === 'skills') {
-            if (Array.isArray(parsed)) {
-              skills = parsed;
-            } else if (parsed?.categories && Array.isArray(parsed.categories)) {
-              skills = parsed.categories.flatMap((c: any) => c.items || []);
-            } else if (typeof parsed === 'object') {
-              skills = Object.values(parsed).flatMap((v: any) => (Array.isArray(v) ? v : [v]));
+      if (resume?.sections) {
+        for (const s of resume.sections) {
+          try {
+            const parsed = typeof s.content === 'string' ? JSON.parse(s.content) : s.content;
+            if (s.sectionType === 'personal_info') personalInfo = parsed;
+            else if (s.sectionType === 'experience') experiences = Array.isArray(parsed) ? parsed : [parsed];
+            else if (s.sectionType === 'education') education = Array.isArray(parsed) ? parsed : [parsed];
+            else if (s.sectionType === 'skills') {
+              if (Array.isArray(parsed)) {
+                skills = parsed;
+              } else if (parsed?.categories && Array.isArray(parsed.categories)) {
+                skills = parsed.categories.flatMap((c: any) => c.items || []);
+              } else if (typeof parsed === 'object') {
+                skills = Object.values(parsed).flatMap((v: any) => (Array.isArray(v) ? v : [v]));
+              }
+            } else if (s.sectionType === 'projects') projects = Array.isArray(parsed) ? parsed : [parsed];
+            else if (s.sectionType === 'certifications') {
+              certifications = Array.isArray(parsed) ? parsed : [parsed];
             }
-          } else if (s.sectionType === 'projects') projects = Array.isArray(parsed) ? parsed : [parsed];
-          else if (s.sectionType === 'certifications') {
-            certifications = Array.isArray(parsed) ? parsed : [parsed];
+          } catch {
+            // ignore parsing errors
           }
-        } catch {
-          // ignore parsing errors
         }
       }
-    }
 
-    if (personalInfo?.fullName) {
-      candidateName = personalInfo.fullName;
-    } else if (resume?.user?.name) {
-      candidateName = resume.user.name;
-    } else if (resume?.title) {
-      candidateName = resume.title.split('—')[0].trim();
+      if (personalInfo?.fullName) {
+        candidateName = personalInfo.fullName;
+      } else if (resume?.user?.name) {
+        candidateName = resume.user.name;
+      } else if (resume?.title) {
+        candidateName = resume.title.split('—')[0].trim();
+      }
+    } catch (e) {
+      console.warn('Resume context fetch note:', e);
     }
-  } catch (e) {
-    console.warn('Resume context fetch note:', e);
+  } else {
+    candidateName = personalInfo.fullName || 'Candidate';
   }
 
   // Construct structured resume context representation

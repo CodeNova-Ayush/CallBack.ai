@@ -152,6 +152,21 @@ export default function ImportOldResumePage() {
           setAnalysisResult(data);
           if (typeof window !== 'undefined') {
             localStorage.setItem('active_resume_id', data.resumeId);
+            localStorage.setItem('active_resume_title', data.title);
+            if (data.parsedSections) {
+              localStorage.setItem('callback_ai_saved_resume_' + data.resumeId, JSON.stringify({
+                personalInfo: data.parsedSections.personalInfo,
+                experiences: data.parsedSections.experience,
+                education: data.parsedSections.education,
+                projects: data.parsedSections.projects,
+                skills: data.parsedSections.skills,
+                certifications: data.parsedSections.certifications,
+              }));
+              localStorage.setItem('active_resume_data', JSON.stringify(data.parsedSections));
+              if (data.parsedSections.personalInfo?.fullName) {
+                localStorage.setItem('active_candidate_name', data.parsedSections.personalInfo.fullName);
+              }
+            }
             window.dispatchEvent(new Event('active_resume_changed'));
           }
         } else {

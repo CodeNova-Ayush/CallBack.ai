@@ -79,6 +79,40 @@ export default function AgentPage() {
     scrollToBottom();
   }, [messages, isLoading]);
 
+  const applyCandidateState = (pi: any, expList: any[], skList: any[], defaultTitle?: string) => {
+    let name = pi?.fullName || 'Candidate';
+    let title = pi?.title || defaultTitle || 'Software Engineer & AI Builder';
+    let summary = pi?.summary || '';
+    let skillsList: string[] = Array.isArray(skList) ? skList : [];
+
+    if (expList && expList.length > 0 && (!pi?.title || title === 'Software Engineer & AI Builder')) {
+      const topExp = expList[0];
+      if (topExp?.role) {
+        title = `${topExp.role}${topExp.company ? ` (${topExp.company})` : ''}`;
+      }
+    }
+
+    setCandidateName(name);
+    setCandidateTitle(title);
+    setCandidateSummary(summary);
+    if (skillsList.length > 0) setCandidateSkills(skillsList);
+
+    setMessages([
+      {
+        id: `init-msg-${activeResumeId}`,
+        role: 'assistant',
+        content: `Hello! I am ${name}'s Living Candidate Agent powered by NVIDIA Llama 3.3. I am grounded strictly in ${name}'s verified records, project repositories, and technical skills (${title}). Ask me anything about ${name}'s engineering experience, latency benchmarks, or stack!`,
+        citedSources: [
+          {
+            sectionTitle: 'Verified Candidate Profile',
+            snippet: summary || `${name} — ${title}`,
+          },
+        ],
+        timestamp: 'Just now',
+      },
+    ]);
+  };
+
   // Load Resumes List for Quick Switcher
   useEffect(() => {
     fetch('/api/resumes')
@@ -93,10 +127,32 @@ export default function AgentPage() {
 
   // Load Active Resume Profile & Initialize Agent
   useEffect(() => {
+    let loadedFromLocal = false;
+
     if (typeof window !== 'undefined') {
+      // 1. If currently on demo resume, check if a real uploaded resume exists in active_resume_id
+      const storedActiveId = localStorage.getItem('active_resume_id');
+      if (activeResumeId === 'demo-resume-alex-1' && storedActiveId && storedActiveId !== 'demo-resume-alex-1') {
+        router.replace(`/agent/${storedActiveId}`);
+        return;
+      }
+
       localStorage.setItem('active_resume_id', activeResumeId);
+
+      // 2. Check local storage cache for this resume
+      try {
+        const saved = localStorage.getItem('callback_ai_saved_resume_' + activeResumeId);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.personalInfo?.fullName) {
+            applyCandidateState(parsed.personalInfo, parsed.experiences, parsed.skills, parsed.personalInfo.title);
+            loadedFromLocal = true;
+          }
+        }
+      } catch (e) {}
     }
 
+    // 3. Fetch from server API
     fetch(`/api/resumes/${activeResumeId}`)
       .then((res) => res.json())
       .then((data) => {
@@ -105,66 +161,36 @@ export default function AgentPage() {
           const exp = data.resume.sections?.find((s: any) => s.sectionType === 'experience');
           const sk = data.resume.sections?.find((s: any) => s.sectionType === 'skills');
 
-          let name = 'Candidate';
-          let title = 'Software Engineer & AI Builder';
-          let summary = '';
-          let skillsList: string[] = ['TypeScript', 'Python', 'Next.js', 'PgVector', 'Docker', 'AWS'];
+          let parsedPi: any = null;
+          let parsedExp: any[] = [];
+          let parsedSk: any[] = [];
 
           if (pi) {
             try {
-              const parsed = JSON.parse(pi.content);
-              if (parsed.fullName) name = parsed.fullName;
-              if (parsed.summary) summary = parsed.summary;
-              if (parsed.title) title = parsed.title;
+              parsedPi = typeof pi.content === 'string' ? JSON.parse(pi.content) : pi.content;
             } catch {}
           }
           if (exp) {
             try {
-              const parsedExp = JSON.parse(exp.content);
-              if (parsedExp?.[0]?.role && title === 'Software Engineer & AI Builder') {
-                title = `${parsedExp[0].role}${parsedExp[0].company ? ` (${parsedExp[0].company})` : ''}`;
-              }
+              const e = typeof exp.content === 'string' ? JSON.parse(exp.content) : exp.content;
+              parsedExp = Array.isArray(e) ? e : [e];
             } catch {}
           }
           if (sk) {
             try {
-              const parsedSk = JSON.parse(sk.content);
-              if (Array.isArray(parsedSk)) {
-                skillsList = parsedSk;
-              } else if (parsedSk?.categories) {
-                skillsList = parsedSk.categories.flatMap((c: any) => c.items || []);
-              }
+              const s = typeof sk.content === 'string' ? JSON.parse(sk.content) : sk.content;
+              if (Array.isArray(s)) parsedSk = s;
+              else if (s?.categories) parsedSk = s.categories.flatMap((c: any) => c.items || []);
             } catch {}
           }
 
-          if (data.resume.title && name === 'Candidate') {
-            name = data.resume.title.split('—')[0].trim();
+          if (parsedPi?.fullName || !loadedFromLocal) {
+            applyCandidateState(parsedPi, parsedExp, parsedSk, data.resume.title?.split('—')?.[1]?.trim());
           }
-
-          setCandidateName(name);
-          setCandidateTitle(title);
-          setCandidateSummary(summary);
-          setCandidateSkills(skillsList);
-
-          // Initial Greetings
-          setMessages([
-            {
-              id: `init-msg-${activeResumeId}`,
-              role: 'assistant',
-              content: `Hello! I am ${name}'s Living Candidate Agent powered by NVIDIA Llama 3.3. I am grounded strictly in ${name}'s verified records, project repositories, and technical skills (${title}). Ask me anything about ${name}'s engineering experience, latency benchmarks, or stack!`,
-              citedSources: [
-                {
-                  sectionTitle: 'Verified Candidate Profile',
-                  snippet: summary || `${name} — ${title}`,
-                },
-              ],
-              timestamp: 'Just now',
-            },
-          ]);
         }
       })
       .catch(() => {});
-  }, [activeResumeId]);
+  }, [activeResumeId, router]);
 
   // Suggested Prompts Grouped by Domain
   const promptCategories = [
@@ -211,7 +237,13 @@ export default function AgentPage() {
       const res = await fetch(`/api/agent/${activeResumeId}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: q }),
+        body: JSON.stringify({
+          question: q,
+          candidateContext: {
+            personalInfo: { fullName: candidateName, title: candidateTitle, summary: candidateSummary },
+            skills: candidateSkills,
+          },
+        }),
       });
       const data = await res.json();
       const answerObj = data.answer || {
@@ -303,6 +335,21 @@ export default function AgentPage() {
         setSelectedLocalFile(null);
         if (typeof window !== 'undefined') {
           localStorage.setItem('active_resume_id', data.resumeId);
+          localStorage.setItem('active_resume_title', data.title);
+          if (data.parsedSections) {
+            localStorage.setItem('callback_ai_saved_resume_' + data.resumeId, JSON.stringify({
+              personalInfo: data.parsedSections.personalInfo,
+              experiences: data.parsedSections.experience,
+              education: data.parsedSections.education,
+              projects: data.parsedSections.projects,
+              skills: data.parsedSections.skills,
+              certifications: data.parsedSections.certifications,
+            }));
+            localStorage.setItem('active_resume_data', JSON.stringify(data.parsedSections));
+            if (data.parsedSections.personalInfo?.fullName) {
+              localStorage.setItem('active_candidate_name', data.parsedSections.personalInfo.fullName);
+            }
+          }
           window.dispatchEvent(new Event('active_resume_changed'));
         }
         router.push(`/agent/${data.resumeId}`);

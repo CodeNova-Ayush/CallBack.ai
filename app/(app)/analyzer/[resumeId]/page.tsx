@@ -29,6 +29,14 @@ export default function AnalyzerPage(props: { params: Promise<{ resumeId: string
   const [appliedFixes, setAppliedFixes] = useState<number[]>([]);
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedActiveId = localStorage.getItem('active_resume_id');
+      if (resumeId === 'demo-resume-alex-1' && storedActiveId && storedActiveId !== 'demo-resume-alex-1') {
+        window.location.href = `/analyzer/${storedActiveId}`;
+        return;
+      }
+    }
+
     fetch(`/api/resumes/${resumeId}/analyze`, { method: 'POST' })
       .then((res) => res.json())
       .then((data) => {
