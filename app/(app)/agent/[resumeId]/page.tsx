@@ -181,86 +181,104 @@ export default function AgentPage() {
 
     if (typeof window !== 'undefined') {
       const activeStored = getActiveStoredResume();
-      if (activeResumeId === 'demo-resume-alex-1' && activeStored && activeStored.id !== 'demo-resume-alex-1') {
-        router.replace(`/agent/${activeStored.id}`);
+      const allStored = getStoredResumes();
+
+      // If on demo resume, but user has uploaded resumes, redirect to user's resume immediately
+      if (activeResumeId === 'demo-resume-alex-1' && allStored.length > 0) {
+        const target = allStored[0];
+        router.replace(`/agent/${target.id}`);
+        applyCandidateState(
+          target.parsedSections.personalInfo,
+          target.parsedSections.experience,
+          target.parsedSections.skills,
+          target.candidateTitle,
+          target.title
+        );
         return;
+      }
+
+      // Check if current activeResumeId is in local stored resumes
+      const matchingStored = allStored.find((r) => r.id === activeResumeId);
+      if (matchingStored) {
+        applyCandidateState(
+          matchingStored.parsedSections.personalInfo,
+          matchingStored.parsedSections.experience,
+          matchingStored.parsedSections.skills,
+          matchingStored.candidateTitle,
+          matchingStored.title
+        );
+        loadedFromLocal = true;
+      } else {
+        // Check single saved resume
+        try {
+          const saved = localStorage.getItem('callback_ai_saved_resume_' + activeResumeId);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed.personalInfo?.fullName) {
+              applyCandidateState(
+                parsed.personalInfo,
+                parsed.experiences || parsed.experience,
+                parsed.skills,
+                parsed.personalInfo.title,
+                localStorage.getItem('active_resume_title') || undefined
+              );
+              loadedFromLocal = true;
+            }
+          }
+        } catch (e) {}
       }
 
       if (activeResumeId !== 'demo-resume-alex-1') {
         localStorage.setItem('active_resume_id', activeResumeId);
       }
-
-      // Check local storage cache for this resume
-      try {
-        const saved = localStorage.getItem('callback_ai_saved_resume_' + activeResumeId);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed.personalInfo?.fullName) {
-            applyCandidateState(
-              parsed.personalInfo,
-              parsed.experiences,
-              parsed.skills,
-              parsed.personalInfo.title,
-              localStorage.getItem('active_resume_title') || undefined
-            );
-            loadedFromLocal = true;
-          }
-        }
-      } catch (e) {}
     }
 
     // Fetch from server API
-    fetch(`/api/resumes/${activeResumeId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.resume) {
-          const pi = data.resume.sections?.find((s: any) => s.sectionType === 'personal_info');
-          const exp = data.resume.sections?.find((s: any) => s.sectionType === 'experience');
-          const sk = data.resume.sections?.find((s: any) => s.sectionType === 'skills');
+    if (activeResumeId !== 'demo-resume-alex-1') {
+      fetch(`/api/resumes/${activeResumeId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.resume) {
+            const pi = data.resume.sections?.find((s: any) => s.sectionType === 'personal_info');
+            const exp = data.resume.sections?.find((s: any) => s.sectionType === 'experience');
+            const sk = data.resume.sections?.find((s: any) => s.sectionType === 'skills');
 
-          let parsedPi: any = null;
-          let parsedExp: any[] = [];
-          let parsedSk: any[] = [];
+            let parsedPi: any = null;
+            let parsedExp: any[] = [];
+            let parsedSk: any[] = [];
 
-          if (pi) {
-            try {
-              parsedPi = typeof pi.content === 'string' ? JSON.parse(pi.content) : pi.content;
-            } catch {}
-          }
-          if (exp) {
-            try {
-              const e = typeof exp.content === 'string' ? JSON.parse(exp.content) : exp.content;
-              parsedExp = Array.isArray(e) ? e : [e];
-            } catch {}
-          }
-          if (sk) {
-            try {
-              const s = typeof sk.content === 'string' ? JSON.parse(sk.content) : sk.content;
-              if (Array.isArray(s)) parsedSk = s;
-              else if (s?.categories) parsedSk = s.categories.flatMap((c: any) => c.items || []);
-            } catch {}
-          }
+            if (pi) {
+              try {
+                parsedPi = typeof pi.content === 'string' ? JSON.parse(pi.content) : pi.content;
+              } catch {}
+            }
+            if (exp) {
+              try {
+                const e = typeof exp.content === 'string' ? JSON.parse(exp.content) : exp.content;
+                parsedExp = Array.isArray(e) ? e : [e];
+              } catch {}
+            }
+            if (sk) {
+              try {
+                const s = typeof sk.content === 'string' ? JSON.parse(sk.content) : sk.content;
+                if (Array.isArray(s)) parsedSk = s;
+                else if (s?.categories) parsedSk = s.categories.flatMap((c: any) => c.items || []);
+              } catch {}
+            }
 
-          if (parsedPi?.fullName && activeResumeId !== 'demo-resume-alex-1') {
-            applyCandidateState(
-              parsedPi,
-              parsedExp,
-              parsedSk,
-              data.resume.title?.split('—')?.[1]?.trim(),
-              data.resume.title
-            );
-          } else if (!loadedFromLocal && activeResumeId === 'demo-resume-alex-1') {
-            applyCandidateState(
-              parsedPi,
-              parsedExp,
-              parsedSk,
-              data.resume.title?.split('—')?.[1]?.trim(),
-              data.resume.title
-            );
+            if (parsedPi?.fullName) {
+              applyCandidateState(
+                parsedPi,
+                parsedExp,
+                parsedSk,
+                data.resume.title?.split('—')?.[1]?.trim(),
+                data.resume.title
+              );
+            }
           }
-        }
-      })
-      .catch(() => {});
+        })
+        .catch(() => {});
+    }
   }, [activeResumeId, router]);
 
   // Suggested Prompts Grouped by Domain
@@ -483,7 +501,7 @@ export default function AgentPage() {
             </div>
 
             {/* Candidate Selector Dropdown */}
-            {allResumes.length > 1 && (
+            {allResumes.filter((r) => (allResumes.length > 1 ? r.id !== 'demo-resume-alex-1' : true)).length > 1 && (
               <div className="pt-2 border-t border-slate-200">
                 <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block mb-1">
                   Active Candidate Profile
@@ -493,13 +511,19 @@ export default function AgentPage() {
                     value={activeResumeId}
                     onChange={(e) => {
                       const selectedId = e.target.value;
-                      const matched = allResumes.find((r) => r.id === selectedId);
                       if (typeof window !== 'undefined') {
-                        localStorage.setItem('active_resume_id', selectedId);
-                        if (matched?.title) {
-                          localStorage.setItem('active_resume_title', matched.title);
-                          localStorage.setItem('active_candidate_name', matched.title.split('—')[0].trim());
+                        const allStored = getStoredResumes();
+                        const matched = allStored.find((r) => r.id === selectedId);
+                        if (matched) {
+                          applyCandidateState(
+                            matched.parsedSections.personalInfo,
+                            matched.parsedSections.experience,
+                            matched.parsedSections.skills,
+                            matched.candidateTitle,
+                            matched.title
+                          );
                         }
+                        localStorage.setItem('active_resume_id', selectedId);
                         window.dispatchEvent(new Event('active_resume_changed'));
                         window.dispatchEvent(new Event('storage'));
                       }
@@ -507,11 +531,13 @@ export default function AgentPage() {
                     }}
                     className="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:border-[#048BA2] cursor-pointer appearance-none pr-8"
                   >
-                    {allResumes.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.title}
-                      </option>
-                    ))}
+                    {allResumes
+                      .filter((r) => (allResumes.length > 1 ? r.id !== 'demo-resume-alex-1' : true))
+                      .map((r) => (
+                        <option key={r.id} value={r.id}>
+                          {r.title}
+                        </option>
+                      ))}
                   </select>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>

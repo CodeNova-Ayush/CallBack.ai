@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { clsx } from 'clsx';
+import { getActiveStoredResume } from '@/lib/client-resume-store';
 
 interface NavGroup {
   groupName: string;
@@ -91,11 +92,25 @@ export const Sidebar: React.FC = () => {
 
   const syncIdentityFromStorage = () => {
     if (typeof window !== 'undefined') {
+      const activeStored = getActiveStoredResume();
+      if (activeStored) {
+        if (activeStored.candidateName && activeStored.candidateName !== 'Candidate Profile') {
+          setCandidateName(activeStored.candidateName);
+        }
+        if (activeStored.candidateEmail) {
+          setCandidateEmail(activeStored.candidateEmail);
+        }
+        if (activeStored.id) {
+          setActiveResumeId(activeStored.id);
+        }
+        return;
+      }
+
       const storedName = localStorage.getItem('active_candidate_name');
       const storedEmail = localStorage.getItem('active_candidate_email');
       const storedId = localStorage.getItem('active_resume_id');
-      if (storedName) setCandidateName(storedName);
-      if (storedEmail) setCandidateEmail(storedEmail);
+      if (storedName && storedName !== 'Alex Rivera') setCandidateName(storedName);
+      if (storedEmail && !storedEmail.includes('alex.rivera')) setCandidateEmail(storedEmail);
       if (storedId) setActiveResumeId(storedId);
     }
   };
@@ -118,59 +133,72 @@ export const Sidebar: React.FC = () => {
 
     const primaryEmail = user.primaryEmailAddress?.emailAddress || user.emailAddresses[0]?.emailAddress;
     const name = user.fullName || user.firstName || primaryEmail?.split('@')[0];
-    if (name && candidateName === 'Candidate Profile') setCandidateName(name);
-    if (primaryEmail && candidateEmail === 'candidate@callback.ai') setCandidateEmail(primaryEmail);
+    if (name && (candidateName === 'Candidate Profile' || candidateName === 'Alex Rivera')) {
+      setCandidateName(name);
+      if (typeof window !== 'undefined') localStorage.setItem('active_candidate_name', name);
+    }
+    if (primaryEmail && (candidateEmail === 'candidate@callback.ai' || candidateEmail.includes('alex.rivera'))) {
+      setCandidateEmail(primaryEmail);
+      if (typeof window !== 'undefined') localStorage.setItem('active_candidate_email', primaryEmail);
+    }
   }, [isLoaded, user]);
 
   React.useEffect(() => {
-    if (activeResumeId) {
-      // 1. Check local storage
-      if (typeof window !== 'undefined') {
-        const saved = localStorage.getItem('callback_ai_saved_resume_' + activeResumeId);
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            if (parsed.personalInfo?.fullName) {
-              setCandidateName(parsed.personalInfo.fullName);
-              localStorage.setItem('active_candidate_name', parsed.personalInfo.fullName);
-            }
-            if (parsed.personalInfo?.email) {
-              setCandidateEmail(parsed.personalInfo.email);
-              localStorage.setItem('active_candidate_email', parsed.personalInfo.email);
-            }
-          } catch {}
-        }
+    if (!activeResumeId || activeResumeId === 'demo-resume-alex-1') {
+      const activeStored = getActiveStoredResume();
+      if (activeStored && activeStored.id !== 'demo-resume-alex-1') {
+        setActiveResumeId(activeStored.id);
+        setCandidateName(activeStored.candidateName);
+        if (activeStored.candidateEmail) setCandidateEmail(activeStored.candidateEmail);
       }
+      return;
+    }
 
-      // 2. Fetch API
-      fetch(`/api/resumes/${activeResumeId}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.resume) {
-            let name = '';
-            if (data.resume.sections) {
-              const pInfo = data.resume.sections.find((s: any) => s.sectionType === 'personal_info');
-              if (pInfo) {
-                try {
-                  const parsed = typeof pInfo.content === 'string' ? JSON.parse(pInfo.content) : pInfo.content;
-                  if (parsed.fullName || parsed.name) name = parsed.fullName || parsed.name;
-                  if (parsed.email) setCandidateEmail(parsed.email);
-                } catch {}
-              }
-            }
-            if (!name && data.resume.title) {
-              name = data.resume.title.split('—')[0].trim();
-            }
-            if (name) {
-              setCandidateName(name);
-              if (typeof window !== 'undefined') {
-                localStorage.setItem('active_candidate_name', name);
-              }
+    // 1. Check local storage
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('callback_ai_saved_resume_' + activeResumeId);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.personalInfo?.fullName) {
+            setCandidateName(parsed.personalInfo.fullName);
+          }
+          if (parsed.personalInfo?.email) {
+            setCandidateEmail(parsed.personalInfo.email);
+          }
+          return;
+        } catch {}
+      }
+    }
+
+    // 2. Fetch API for custom resume
+    fetch(`/api/resumes/${activeResumeId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.resume && data.resume.id !== 'demo-resume-alex-1') {
+          let name = '';
+          if (data.resume.sections) {
+            const pInfo = data.resume.sections.find((s: any) => s.sectionType === 'personal_info');
+            if (pInfo) {
+              try {
+                const parsed = typeof pInfo.content === 'string' ? JSON.parse(pInfo.content) : pInfo.content;
+                if (parsed.fullName || parsed.name) name = parsed.fullName || parsed.name;
+                if (parsed.email && !parsed.email.includes('alex.rivera')) setCandidateEmail(parsed.email);
+              } catch {}
             }
           }
-        })
-        .catch(() => {});
-    }
+          if (!name && data.resume.title) {
+            name = data.resume.title.split('—')[0].trim();
+          }
+          if (name && name !== 'Alex Rivera') {
+            setCandidateName(name);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('active_candidate_name', name);
+            }
+          }
+        }
+      })
+      .catch(() => {});
   }, [activeResumeId]);
 
   const initials = candidateName
