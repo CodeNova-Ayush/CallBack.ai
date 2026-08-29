@@ -166,8 +166,18 @@ export default function ImportOldResumePage() {
               if (data.parsedSections.personalInfo?.fullName) {
                 localStorage.setItem('active_candidate_name', data.parsedSections.personalInfo.fullName);
               }
+              if (data.parsedSections.personalInfo?.title) {
+                localStorage.setItem('active_candidate_title', data.parsedSections.personalInfo.title);
+              }
+              if (data.parsedSections.personalInfo?.email) {
+                localStorage.setItem('active_candidate_email', data.parsedSections.personalInfo.email);
+              }
+              if (data.parsedSections.skills) {
+                localStorage.setItem('active_candidate_skills', JSON.stringify(data.parsedSections.skills));
+              }
             }
             window.dispatchEvent(new Event('active_resume_changed'));
+            window.dispatchEvent(new Event('storage'));
           }
         } else {
           alert(data.error || 'Failed to analyze resume');
