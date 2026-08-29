@@ -23,6 +23,8 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { TemplateId } from '@/components/builder/ResumeTemplates';
 
+import { getStoredResumes, StoredResumeItem } from '@/lib/client-resume-store';
+
 export default function DashboardPage() {
   const router = useRouter();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -32,30 +34,31 @@ export default function DashboardPage() {
   const [resumes, setResumes] = useState<any[]>([]);
 
   useEffect(() => {
-    let localResumes: any[] = [];
-    if (typeof window !== 'undefined') {
-      const activeId = localStorage.getItem('active_resume_id');
-      const activeTitle = localStorage.getItem('active_resume_title');
-      if (activeId && activeId !== 'demo-resume-alex-1') {
-        localResumes.push({
-          id: activeId,
-          title: activeTitle || 'Imported Resume Profile',
-          updatedAt: 'Active Profile',
-          atsScore: 97,
-          trustScore: 98,
-          isActive: true,
-          template: 'Executive Two-Column',
-        });
-      }
+    const localStored = getStoredResumes().map((r) => ({
+      id: r.id,
+      title: r.title,
+      updatedAt: r.updatedAt || 'Recently updated',
+      atsScore: r.atsScore || 96,
+      trustScore: r.trustScore || 98,
+      isActive: r.isActive,
+      template: r.template || 'Executive Two-Column',
+    }));
+
+    if (localStored.length > 0) {
+      setResumes(localStored);
     }
 
     fetch('/api/resumes')
       .then((res) => res.json())
       .then((data) => {
-        const list = Array.isArray(data.resumes) ? data.resumes : [];
+        const serverList = Array.isArray(data.resumes) ? data.resumes : [];
         const map = new Map<string, any>();
-        for (const lr of localResumes) map.set(lr.id, lr);
-        for (const r of list) map.set(r.id, r);
+        for (const lr of localStored) map.set(lr.id, lr);
+        for (const r of serverList) {
+          // If we have user-uploaded resumes, don't show the dummy Alex Rivera resume
+          if (localStored.length > 0 && r.id === 'demo-resume-alex-1') continue;
+          if (!map.has(r.id)) map.set(r.id, r);
+        }
 
         if (map.size > 0) {
           setResumes(Array.from(map.values()));
@@ -74,7 +77,7 @@ export default function DashboardPage() {
         }
       })
       .catch(() => {
-        if (localResumes.length > 0) setResumes(localResumes);
+        if (localStored.length > 0) setResumes(localStored);
       });
   }, []);
 

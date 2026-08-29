@@ -39,13 +39,23 @@ import { ChatBubble, ChatMessage } from '@/components/ui/ChatBubble';
 import { ThreeAgentCanvas } from '@/components/agent/ThreeAgentCanvas';
 import { AgentLoadingState } from '@/components/agent/AgentLoadingState';
 
+import { getStoredResumes, getActiveStoredResume } from '@/lib/client-resume-store';
+
 export default function AgentPage() {
   const router = useRouter();
   const routeParams = useParams();
   const activeResumeId = (routeParams?.resumeId as string) || 'demo-resume-alex-1';
 
   // Candidate Data State
-  const [candidateName, setCandidateName] = useState('Candidate');
+  const [candidateName, setCandidateName] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const active = getActiveStoredResume();
+      if (active?.candidateName) return active.candidateName;
+      const stored = localStorage.getItem('active_candidate_name');
+      if (stored && stored !== 'Alex Rivera') return stored;
+    }
+    return 'Candidate';
+  });
   const [candidateTitle, setCandidateTitle] = useState('Software Engineer & AI Builder');
   const [candidateSummary, setCandidateSummary] = useState('');
   const [candidateSkills, setCandidateSkills] = useState<string[]>([]);
@@ -134,27 +144,30 @@ export default function AgentPage() {
 
   // Load Resumes List for Quick Switcher
   useEffect(() => {
-    let localResumes: any[] = [];
-    if (typeof window !== 'undefined') {
-      const activeId = localStorage.getItem('active_resume_id');
-      const activeTitle = localStorage.getItem('active_resume_title');
-      if (activeId && activeId !== 'demo-resume-alex-1') {
-        localResumes.push({
-          id: activeId,
-          title: activeTitle || 'Imported Candidate Profile',
-        });
-      }
+    const localResumes = getStoredResumes().map((r) => ({ id: r.id, title: r.title }));
+    const activeStored = getActiveStoredResume();
+
+    if (activeStored && activeStored.id === activeResumeId) {
+      applyCandidateState(
+        activeStored.parsedSections.personalInfo,
+        activeStored.parsedSections.experience,
+        activeStored.parsedSections.skills,
+        activeStored.candidateTitle,
+        activeStored.title
+      );
     }
 
     fetch('/api/resumes')
       .then((res) => res.json())
       .then((data) => {
-        const list = Array.isArray(data.resumes) ? data.resumes : [];
+        const serverList = Array.isArray(data.resumes) ? data.resumes : [];
         const map = new Map<string, any>();
         for (const lr of localResumes) map.set(lr.id, lr);
-        for (const r of list) map.set(r.id, r);
-        if (map.size > 0) {
-          setAllResumes(Array.from(map.values()));
+        for (const r of serverList) map.set(r.id, r);
+
+        const merged = Array.from(map.values());
+        if (merged.length > 0) {
+          setAllResumes(merged);
         }
       })
       .catch(() => {
@@ -167,10 +180,9 @@ export default function AgentPage() {
     let loadedFromLocal = false;
 
     if (typeof window !== 'undefined') {
-      // 1. If currently on demo resume, check if a real uploaded resume exists in active_resume_id
-      const storedActiveId = localStorage.getItem('active_resume_id');
-      if (activeResumeId === 'demo-resume-alex-1' && storedActiveId && storedActiveId !== 'demo-resume-alex-1') {
-        router.replace(`/agent/${storedActiveId}`);
+      const activeStored = getActiveStoredResume();
+      if (activeResumeId === 'demo-resume-alex-1' && activeStored && activeStored.id !== 'demo-resume-alex-1') {
+        router.replace(`/agent/${activeStored.id}`);
         return;
       }
 
@@ -178,7 +190,7 @@ export default function AgentPage() {
         localStorage.setItem('active_resume_id', activeResumeId);
       }
 
-      // 2. Check local storage cache for this resume
+      // Check local storage cache for this resume
       try {
         const saved = localStorage.getItem('callback_ai_saved_resume_' + activeResumeId);
         if (saved) {
@@ -197,7 +209,7 @@ export default function AgentPage() {
       } catch (e) {}
     }
 
-    // 3. Fetch from server API
+    // Fetch from server API
     fetch(`/api/resumes/${activeResumeId}`)
       .then((res) => res.json())
       .then((data) => {
@@ -229,7 +241,15 @@ export default function AgentPage() {
             } catch {}
           }
 
-          if (parsedPi?.fullName || !loadedFromLocal) {
+          if (parsedPi?.fullName && activeResumeId !== 'demo-resume-alex-1') {
+            applyCandidateState(
+              parsedPi,
+              parsedExp,
+              parsedSk,
+              data.resume.title?.split('—')?.[1]?.trim(),
+              data.resume.title
+            );
+          } else if (!loadedFromLocal && activeResumeId === 'demo-resume-alex-1') {
             applyCandidateState(
               parsedPi,
               parsedExp,
@@ -285,14 +305,27 @@ export default function AgentPage() {
     setIsLoading(true);
 
     try {
+      let clientFullContext: any = null;
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('callback_ai_saved_resume_' + activeResumeId) || localStorage.getItem('active_resume_data');
+        if (saved) {
+          try {
+            clientFullContext = JSON.parse(saved);
+          } catch {}
+        }
+      }
+
       const res = await fetch(`/api/agent/${activeResumeId}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           question: q,
           candidateContext: {
-            personalInfo: { fullName: candidateName, title: candidateTitle, summary: candidateSummary },
-            skills: candidateSkills,
+            personalInfo: clientFullContext?.personalInfo || { fullName: candidateName, title: candidateTitle, summary: candidateSummary },
+            experiences: clientFullContext?.experiences || clientFullContext?.experience || [],
+            projects: clientFullContext?.projects || [],
+            education: clientFullContext?.education || [],
+            skills: clientFullContext?.skills || candidateSkills,
           },
         }),
       });

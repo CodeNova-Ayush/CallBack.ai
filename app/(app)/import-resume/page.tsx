@@ -25,6 +25,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Card, Badge, ProgressRing } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { saveResumeToStore } from '@/lib/client-resume-store';
 
 const SAMPLE_OLD_RESUMES = [
   {
@@ -150,34 +151,21 @@ export default function ImportOldResumePage() {
         setIsProcessing(false);
         if (data.success && data.resumeId) {
           setAnalysisResult(data);
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('active_resume_id', data.resumeId);
-            localStorage.setItem('active_resume_title', data.title);
-            if (data.parsedSections) {
-              localStorage.setItem('callback_ai_saved_resume_' + data.resumeId, JSON.stringify({
-                personalInfo: data.parsedSections.personalInfo,
-                experiences: data.parsedSections.experience,
-                education: data.parsedSections.education,
-                projects: data.parsedSections.projects,
-                skills: data.parsedSections.skills,
-                certifications: data.parsedSections.certifications,
-              }));
-              localStorage.setItem('active_resume_data', JSON.stringify(data.parsedSections));
-              if (data.parsedSections.personalInfo?.fullName) {
-                localStorage.setItem('active_candidate_name', data.parsedSections.personalInfo.fullName);
-              }
-              if (data.parsedSections.personalInfo?.title) {
-                localStorage.setItem('active_candidate_title', data.parsedSections.personalInfo.title);
-              }
-              if (data.parsedSections.personalInfo?.email) {
-                localStorage.setItem('active_candidate_email', data.parsedSections.personalInfo.email);
-              }
-              if (data.parsedSections.skills) {
-                localStorage.setItem('active_candidate_skills', JSON.stringify(data.parsedSections.skills));
-              }
-            }
-            window.dispatchEvent(new Event('active_resume_changed'));
-            window.dispatchEvent(new Event('storage'));
+          if (typeof window !== 'undefined' && data.parsedSections) {
+            saveResumeToStore({
+              id: data.resumeId,
+              title: data.title || `${data.parsedSections.personalInfo?.fullName || 'Candidate'} Resume`,
+              candidateName: data.parsedSections.personalInfo?.fullName || 'Candidate',
+              candidateTitle: data.parsedSections.personalInfo?.title || 'Software Engineer',
+              candidateEmail: data.parsedSections.personalInfo?.email || '',
+              candidatePhone: data.parsedSections.personalInfo?.phone || '',
+              candidateLocation: data.parsedSections.personalInfo?.location || '',
+              atsScore: data.atsScore || 96,
+              trustScore: 98,
+              updatedAt: 'Just now',
+              isActive: true,
+              parsedSections: data.parsedSections,
+            });
           }
         } else {
           alert(data.error || 'Failed to analyze resume');

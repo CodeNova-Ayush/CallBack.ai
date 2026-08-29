@@ -102,14 +102,19 @@ const TECH_TAXONOMY: { name: string; category: MatchedKeywordItem['category']; a
   { name: 'System Design', category: 'architecture', aliases: ['system design', 'high throughput', 'low latency', 'scalability', 'fault tolerance'] },
 ];
 
-/**
- * Main function to match a candidate's resume with a target Job Description
- */
-export async function matchResumeWithJD(resumeId: string, jdText: string): Promise<MatchResultOutput> {
-  // 1. Fetch Candidate's Resume & Sections reliably (DB + in-memory cache)
-  const resume = await getResumeWithSections(resumeId);
-
+export async function matchResumeWithJD(
+  resumeId: string,
+  jdText: string,
+  clientContext?: {
+    personalInfo?: any;
+    experiences?: any[];
+    experience?: any[];
+    projects?: any[];
+    skills?: string[];
+  }
+): Promise<MatchResultOutput> {
   // Extract parsed structured content
+  let resume: any = null;
   let candidateName = 'Candidate';
   let candidateRole = 'Software Engineer';
   let parsedExperiences: any[] = [];
@@ -117,26 +122,41 @@ export async function matchResumeWithJD(resumeId: string, jdText: string): Promi
   let parsedSkills: string[] = [];
   let parsedSummary = '';
 
-  if (resume?.sections) {
-    for (const sec of resume.sections) {
-      try {
-        const parsed = typeof sec.content === 'string' ? JSON.parse(sec.content) : sec.content;
-        if (sec.sectionType === 'personal_info') {
-          if (parsed.fullName) candidateName = parsed.fullName;
-          if (parsed.summary) parsedSummary = parsed.summary;
-        } else if (sec.sectionType === 'experience' && Array.isArray(parsed)) {
-          parsedExperiences = parsed;
-          if (parsed[0]?.role) candidateRole = parsed[0].role;
-        } else if (sec.sectionType === 'projects' && Array.isArray(parsed)) {
-          parsedProjects = parsed;
-        } else if (sec.sectionType === 'skills') {
-          if (Array.isArray(parsed)) parsedSkills = parsed;
-          else if (typeof parsed === 'object') {
-            parsedSkills = Object.values(parsed).flatMap((v: any) => (Array.isArray(v) ? v : [v]));
+  if (clientContext) {
+    if (clientContext.personalInfo?.fullName) candidateName = clientContext.personalInfo.fullName;
+    if (clientContext.personalInfo?.title) candidateRole = clientContext.personalInfo.title;
+    if (clientContext.personalInfo?.summary) parsedSummary = clientContext.personalInfo.summary;
+    if (Array.isArray(clientContext.experiences)) parsedExperiences = clientContext.experiences;
+    else if (Array.isArray(clientContext.experience)) parsedExperiences = clientContext.experience;
+    if (Array.isArray(clientContext.projects)) parsedProjects = clientContext.projects;
+    if (Array.isArray(clientContext.skills)) parsedSkills = clientContext.skills;
+  }
+
+  if (!parsedExperiences.length && !parsedSkills.length) {
+    // 1. Fetch Candidate's Resume & Sections reliably (DB + in-memory cache)
+    resume = await getResumeWithSections(resumeId);
+
+    if (resume?.sections) {
+      for (const sec of resume.sections) {
+        try {
+          const parsed = typeof sec.content === 'string' ? JSON.parse(sec.content) : sec.content;
+          if (sec.sectionType === 'personal_info') {
+            if (parsed.fullName) candidateName = parsed.fullName;
+            if (parsed.summary) parsedSummary = parsed.summary;
+          } else if (sec.sectionType === 'experience' && Array.isArray(parsed)) {
+            parsedExperiences = parsed;
+            if (parsed[0]?.role) candidateRole = parsed[0].role;
+          } else if (sec.sectionType === 'projects' && Array.isArray(parsed)) {
+            parsedProjects = parsed;
+          } else if (sec.sectionType === 'skills') {
+            if (Array.isArray(parsed)) parsedSkills = parsed;
+            else if (typeof parsed === 'object') {
+              parsedSkills = Object.values(parsed).flatMap((v: any) => (Array.isArray(v) ? v : [v]));
+            }
           }
+        } catch (e) {
+          console.error(`Failed to parse section ${sec.sectionType}:`, e);
         }
-      } catch (e) {
-        console.error(`Failed to parse section ${sec.sectionType}:`, e);
       }
     }
   }

@@ -81,16 +81,28 @@ const DEFAULT_POSTINGS: JobOpportunity[] = [
   },
 ];
 
+import { getStoredResumes, getActiveStoredResume, StoredResumeItem } from '@/lib/client-resume-store';
+
 export default function OpportunitiesPage() {
   const router = useRouter();
 
   // State
-  const [candidateName, setCandidateName] = useState('Ayush Mishra');
+  const [candidateName, setCandidateName] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const active = getActiveStoredResume();
+      if (active?.candidateName) return active.candidateName;
+      const stored = localStorage.getItem('active_candidate_name');
+      if (stored && stored !== 'Alex Rivera') return stored;
+    }
+    return 'Candidate Profile';
+  });
   const [candidateTitle, setCandidateTitle] = useState('Senior Full-Stack & AI Systems Engineer');
   const [baseSummary, setBaseSummary] = useState('');
   const [allResumes, setAllResumes] = useState<{ id: string; title: string }[]>([]);
   const [activeResumeId, setActiveResumeId] = useState<string>(() => {
     if (typeof window !== 'undefined') {
+      const active = getActiveStoredResume();
+      if (active?.id) return active.id;
       return localStorage.getItem('active_resume_id') || 'demo-resume-alex-1';
     }
     return 'demo-resume-alex-1';
@@ -112,21 +124,37 @@ export default function OpportunitiesPage() {
 
   // Load Resumes
   useEffect(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('active_resume_id') : null;
+    const localResumes = getStoredResumes().map((r) => ({ id: r.id, title: r.title }));
+    const activeStored = getActiveStoredResume();
+
+    if (activeStored) {
+      setActiveResumeId(activeStored.id);
+      setCandidateName(activeStored.candidateName);
+      setCandidateTitle(activeStored.candidateTitle);
+      setBaseSummary(activeStored.parsedSections.personalInfo?.summary || `${activeStored.candidateName} is an experienced technology professional.`);
+    }
+
     fetch('/api/resumes')
       .then((res) => res.json())
       .then((data) => {
-        if (data.resumes && Array.isArray(data.resumes)) {
-          setAllResumes(data.resumes);
-          const targetId = stored && data.resumes.some((r: any) => r.id === stored)
-            ? stored
-            : data.resumes.length > 0
-            ? data.resumes[0].id
-            : 'demo-resume-alex-1';
-          setActiveResumeId(targetId);
+        const serverList = Array.isArray(data.resumes) ? data.resumes : [];
+        const map = new Map<string, any>();
+        for (const lr of localResumes) map.set(lr.id, lr);
+        for (const r of serverList) map.set(r.id, r);
+
+        const merged = Array.from(map.values());
+        if (merged.length > 0) {
+          setAllResumes(merged);
+          if (!activeStored) {
+            const stored = typeof window !== 'undefined' ? localStorage.getItem('active_resume_id') : null;
+            const target = stored && merged.some((r: any) => r.id === stored) ? stored : merged[0].id;
+            setActiveResumeId(target);
+          }
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (localResumes.length > 0) setAllResumes(localResumes);
+      });
   }, []);
 
   // Load Active Resume Data
@@ -140,7 +168,9 @@ export default function OpportunitiesPage() {
           const parsed = JSON.parse(saved);
           if (parsed.personalInfo?.fullName) {
             setCandidateName(parsed.personalInfo.fullName);
+            setCandidateTitle(parsed.personalInfo.title || 'Senior Software Engineer');
             setBaseSummary(parsed.personalInfo.summary || `${parsed.personalInfo.fullName} is an experienced technology professional.`);
+            return;
           }
         }
       } catch (e) {}
@@ -152,11 +182,13 @@ export default function OpportunitiesPage() {
         if (data.resume) {
           const pi = data.resume.sections?.find((s: any) => s.sectionType === 'personal_info');
           let name = 'Candidate';
+          let title = 'Software Engineer';
           let summary = '';
           if (pi) {
             try {
               const parsed = typeof pi.content === 'string' ? JSON.parse(pi.content) : pi.content;
               if (parsed.fullName) name = parsed.fullName;
+              if (parsed.title) title = parsed.title;
               if (parsed.summary) summary = parsed.summary;
             } catch {}
           }
@@ -164,6 +196,7 @@ export default function OpportunitiesPage() {
             name = data.resume.title.split('—')[0].trim();
           }
           setCandidateName(name);
+          setCandidateTitle(title);
           setBaseSummary(summary || `${name} is an experienced systems engineer building high-performance AI and web applications.`);
         }
       })

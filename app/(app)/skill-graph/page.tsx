@@ -22,6 +22,8 @@ import { Button } from '@/components/ui/Button';
 import { Card, Badge } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 
+import { getStoredResumes, getActiveStoredResume } from '@/lib/client-resume-store';
+
 interface SkillNode {
   name: string;
   category: string;
@@ -30,10 +32,20 @@ interface SkillNode {
 }
 
 export default function SkillGraphPage() {
-  const [candidateName, setCandidateName] = useState('Ayush Mishra');
+  const [candidateName, setCandidateName] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const active = getActiveStoredResume();
+      if (active?.candidateName) return active.candidateName;
+      const stored = localStorage.getItem('active_candidate_name');
+      if (stored && stored !== 'Alex Rivera') return stored;
+    }
+    return 'Candidate Profile';
+  });
   const [allResumes, setAllResumes] = useState<{ id: string; title: string }[]>([]);
   const [activeResumeId, setActiveResumeId] = useState<string>(() => {
     if (typeof window !== 'undefined') {
+      const active = getActiveStoredResume();
+      if (active?.id) return active.id;
       return localStorage.getItem('active_resume_id') || 'demo-resume-alex-1';
     }
     return 'demo-resume-alex-1';
@@ -61,23 +73,41 @@ export default function SkillGraphPage() {
 
   // Load Resumes
   useEffect(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('active_resume_id') : null;
+    const localResumes = getStoredResumes().map((r) => ({ id: r.id, title: r.title }));
+    const activeStored = getActiveStoredResume();
+
+    if (activeStored) {
+      setActiveResumeId(activeStored.id);
+      setCandidateName(activeStored.candidateName);
+      loadSkillGraph(activeStored.id);
+    }
+
     fetch('/api/resumes')
       .then((res) => res.json())
       .then((data) => {
-        if (data.resumes && Array.isArray(data.resumes)) {
-          setAllResumes(data.resumes);
-          const targetId = stored && data.resumes.some((r: any) => r.id === stored)
-            ? stored
-            : data.resumes.length > 0
-            ? data.resumes[0].id
-            : 'demo-resume-alex-1';
-          setActiveResumeId(targetId);
-          loadSkillGraph(targetId);
+        const serverList = Array.isArray(data.resumes) ? data.resumes : [];
+        const map = new Map<string, any>();
+        for (const lr of localResumes) map.set(lr.id, lr);
+        for (const r of serverList) map.set(r.id, r);
+
+        const merged = Array.from(map.values());
+        if (merged.length > 0) {
+          setAllResumes(merged);
+          if (!activeStored) {
+            const stored = typeof window !== 'undefined' ? localStorage.getItem('active_resume_id') : null;
+            const target = stored && merged.some((r: any) => r.id === stored) ? stored : merged[0].id;
+            setActiveResumeId(target);
+            loadSkillGraph(target);
+          }
         }
       })
       .catch(() => {
-        loadSkillGraph('demo-resume-alex-1');
+        if (localResumes.length > 0) {
+          setAllResumes(localResumes);
+          loadSkillGraph(localResumes[0].id);
+        } else {
+          loadSkillGraph('demo-resume-alex-1');
+        }
       });
   }, []);
 

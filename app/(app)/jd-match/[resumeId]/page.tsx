@@ -185,10 +185,24 @@ export default function JDMatchPage(props: { params: Promise<{ resumeId: string 
     setLoadingStep('Analyzing with AI & computing match score...');
 
     try {
+      let clientFullContext: any = null;
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('callback_ai_saved_resume_' + targetResumeId) || localStorage.getItem('active_resume_data');
+        if (saved) {
+          try {
+            clientFullContext = JSON.parse(saved);
+          } catch {}
+        }
+      }
+
       const res = await fetch('/api/match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resumeId: targetResumeId, jdText: targetJdText }),
+        body: JSON.stringify({
+          resumeId: targetResumeId,
+          jdText: targetJdText,
+          candidateContext: clientFullContext,
+        }),
       });
 
       const data = await res.json();

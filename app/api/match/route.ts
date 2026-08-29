@@ -12,6 +12,8 @@ export async function POST(request: Request) {
     let jdText = '';
     let uploadedFileName = '';
 
+    let candidateContext: any = null;
+
     // Handle Multipart Form Data (Direct File Upload + Match)
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
@@ -51,6 +53,7 @@ export async function POST(request: Request) {
       const body = await request.json();
       resumeId = body.resumeId;
       jdText = body.jdText;
+      candidateContext = body.candidateContext;
     }
 
     if (!jdText || jdText.trim().length === 0) {
@@ -66,7 +69,7 @@ export async function POST(request: Request) {
     }
 
     // Run Real Semantic / LLM JD Match
-    const match = await matchResumeWithJD(resumeId, jdText);
+    const match = await matchResumeWithJD(resumeId, jdText, candidateContext);
 
     return NextResponse.json({
       success: true,
