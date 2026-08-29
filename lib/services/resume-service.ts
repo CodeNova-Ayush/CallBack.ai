@@ -20,7 +20,7 @@ export function saveResumeToMemory(resume: any) {
 export const defaultCandidateResume = {
   id: 'demo-resume-alex-1',
   userId: 'demo-user-alex',
-  title: 'Alex Rivera — Senior Full-Stack & AI Engineer',
+  title: 'Candidate Profile — Senior Full-Stack & AI Engineer',
   isActive: true,
   sections: [
     {
@@ -29,14 +29,14 @@ export const defaultCandidateResume = {
       sectionType: 'personal_info',
       order: 0,
       content: JSON.stringify({
-        fullName: 'Alex Rivera',
-        email: 'alex.rivera@example.com',
+        fullName: 'Candidate Profile',
+        email: 'candidate@callback.ai',
         phone: '+1 (555) 234-5678',
         location: 'San Francisco, CA',
-        linkedin: 'https://linkedin.com/in/alexrivera',
-        github: 'https://github.com/alexrivera',
-        website: 'https://alexrivera.dev',
-        summary: 'Senior Full-Stack & AI Systems Architect with 7+ years of experience designing distributed RAG pipelines, sub-100ms LLM inference gateways, and enterprise Next.js applications.',
+        linkedin: 'https://linkedin.com',
+        github: 'https://github.com',
+        website: 'https://callback.ai',
+        summary: 'Senior Full-Stack & AI Systems Architect with experience designing distributed RAG pipelines, sub-100ms LLM inference gateways, and enterprise Next.js applications.',
       }),
     },
     {

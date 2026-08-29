@@ -50,13 +50,23 @@ export default function AgentPage() {
   const [candidateName, setCandidateName] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       const active = getActiveStoredResume();
-      if (active?.candidateName) return active.candidateName;
+      if (active?.candidateName && active.candidateName !== 'Alex Rivera' && active.candidateName !== 'Candidate') {
+        return active.candidateName;
+      }
       const stored = localStorage.getItem('active_candidate_name');
-      if (stored && stored !== 'Alex Rivera') return stored;
+      if (stored && stored !== 'Alex Rivera' && stored !== 'Candidate') return stored;
     }
     return 'Candidate';
   });
-  const [candidateTitle, setCandidateTitle] = useState('Software Engineer & AI Builder');
+  const [candidateTitle, setCandidateTitle] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const active = getActiveStoredResume();
+      if (active?.candidateTitle) return active.candidateTitle;
+      const stored = localStorage.getItem('active_candidate_title');
+      if (stored) return stored;
+    }
+    return 'Senior Software Engineer & AI Builder';
+  });
   const [candidateSummary, setCandidateSummary] = useState('');
   const [candidateSkills, setCandidateSkills] = useState<string[]>([]);
   const [allResumes, setAllResumes] = useState<{ id: string; title: string }[]>([]);
@@ -91,18 +101,18 @@ export default function AgentPage() {
 
   const applyCandidateState = (pi: any, expList: any[], skList: any[], defaultTitle?: string, resumeTitle?: string) => {
     let name = pi?.fullName;
-    if (!name || name === 'Candidate') {
+    if (!name || name === 'Candidate' || name === 'Alex Rivera') {
       if (resumeTitle && resumeTitle.includes('—')) {
         name = resumeTitle.split('—')[0].trim();
       }
     }
-    if (!name || name === 'Candidate') {
+    if (!name || name === 'Candidate' || name === 'Alex Rivera') {
       if (typeof window !== 'undefined') {
         const storedName = localStorage.getItem('active_candidate_name');
-        if (storedName) name = storedName;
+        if (storedName && storedName !== 'Alex Rivera') name = storedName;
       }
     }
-    if (!name) name = 'Candidate';
+    if (!name || name === 'Alex Rivera') name = 'Candidate';
 
     let title = pi?.title;
     if (!title || title === 'Software Engineer & AI Builder') {
@@ -157,13 +167,20 @@ export default function AgentPage() {
       );
     }
 
+    if (localResumes.length > 0) {
+      setAllResumes(localResumes);
+    }
+
     fetch('/api/resumes')
       .then((res) => res.json())
       .then((data) => {
         const serverList = Array.isArray(data.resumes) ? data.resumes : [];
         const map = new Map<string, any>();
         for (const lr of localResumes) map.set(lr.id, lr);
-        for (const r of serverList) map.set(r.id, r);
+        for (const r of serverList) {
+          if (localResumes.length > 0 && r.id === 'demo-resume-alex-1') continue;
+          if (!map.has(r.id)) map.set(r.id, r);
+        }
 
         const merged = Array.from(map.values());
         if (merged.length > 0) {
@@ -180,12 +197,12 @@ export default function AgentPage() {
     let loadedFromLocal = false;
 
     if (typeof window !== 'undefined') {
-      const activeStored = getActiveStoredResume();
       const allStored = getStoredResumes();
+      const activeStored = getActiveStoredResume();
 
-      // If on demo resume, but user has uploaded resumes, redirect to user's resume immediately
-      if (activeResumeId === 'demo-resume-alex-1' && allStored.length > 0) {
-        const target = allStored[0];
+      // If on demo resume or unlisted resume, but user has uploaded resumes, redirect to user's real resume
+      if ((activeResumeId === 'demo-resume-alex-1' || !allStored.some((r) => r.id === activeResumeId)) && allStored.length > 0) {
+        const target = activeStored || allStored[0];
         router.replace(`/agent/${target.id}`);
         applyCandidateState(
           target.parsedSections.personalInfo,

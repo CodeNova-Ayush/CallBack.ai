@@ -47,16 +47,93 @@ export const STORAGE_KEYS = {
  */
 export function getStoredResumes(): StoredResumeItem[] {
   if (typeof window === 'undefined') return [];
+  const map = new Map<string, StoredResumeItem>();
+
+  // 1. Try reading the list key
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.RESUMES_LIST);
     if (raw) {
       const list = JSON.parse(raw);
-      if (Array.isArray(list) && list.length > 0) return list;
+      if (Array.isArray(list)) {
+        for (const item of list) {
+          if (item?.id && item.id !== 'demo-resume-alex-1') {
+            map.set(item.id, item);
+          }
+        }
+      }
     }
-  } catch (e) {
-    console.warn('Error reading stored resumes:', e);
-  }
-  return [];
+  } catch (e) {}
+
+  // 2. Scan all localStorage keys for any individual saved resumes
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('callback_ai_saved_resume_')) {
+        const id = key.replace('callback_ai_saved_resume_', '');
+        if (id && id !== 'demo-resume-alex-1' && !map.has(id)) {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            const name = parsed.personalInfo?.fullName || localStorage.getItem(STORAGE_KEYS.ACTIVE_NAME) || 'Candidate';
+            const title = parsed.personalInfo?.title || localStorage.getItem(STORAGE_KEYS.ACTIVE_TITLE_NAME) || 'Software Engineer';
+            map.set(id, {
+              id,
+              title: localStorage.getItem(STORAGE_KEYS.ACTIVE_TITLE) || `${name} — ${title}`,
+              candidateName: name,
+              candidateTitle: title,
+              candidateEmail: parsed.personalInfo?.email || '',
+              candidatePhone: parsed.personalInfo?.phone || '',
+              candidateLocation: parsed.personalInfo?.location || '',
+              atsScore: 96,
+              trustScore: 98,
+              updatedAt: 'Active Profile',
+              isActive: true,
+              parsedSections: {
+                personalInfo: parsed.personalInfo || {},
+                experience: parsed.experiences || parsed.experience || [],
+                education: parsed.education || [],
+                projects: parsed.projects || [],
+                skills: parsed.skills || [],
+                certifications: parsed.certifications || [],
+              },
+            });
+          }
+        }
+      }
+    }
+  } catch (e) {}
+
+  // 3. If still empty, check active_resume_data and active_resume_id
+  try {
+    const activeId = localStorage.getItem(STORAGE_KEYS.ACTIVE_ID);
+    if (activeId && activeId !== 'demo-resume-alex-1' && !map.has(activeId)) {
+      const activeData = localStorage.getItem(STORAGE_KEYS.ACTIVE_DATA);
+      const name = localStorage.getItem(STORAGE_KEYS.ACTIVE_NAME) || 'Candidate';
+      const title = localStorage.getItem(STORAGE_KEYS.ACTIVE_TITLE_NAME) || 'Software Engineer';
+      const parsed = activeData ? JSON.parse(activeData) : {};
+      map.set(activeId, {
+        id: activeId,
+        title: localStorage.getItem(STORAGE_KEYS.ACTIVE_TITLE) || `${name} — ${title}`,
+        candidateName: name,
+        candidateTitle: title,
+        candidateEmail: localStorage.getItem(STORAGE_KEYS.ACTIVE_EMAIL) || '',
+        atsScore: 96,
+        trustScore: 98,
+        updatedAt: 'Active Profile',
+        isActive: true,
+        parsedSections: {
+          personalInfo: parsed.personalInfo || {},
+          experience: parsed.experience || parsed.experiences || [],
+          education: parsed.education || [],
+          projects: parsed.projects || [],
+          skills: parsed.skills || [],
+          certifications: parsed.certifications || [],
+        },
+      });
+    }
+  } catch (e) {}
+
+  return Array.from(map.values());
 }
 
 /**
